@@ -15,14 +15,17 @@ mt792x_acpi_read(struct mt792x_dev *dev, u8 *method, u8 **tbl, u32 *len)
 	u32 i = 0;
 	int ret;
 
+	// TODO: ACPI_HANDLE must be implemented on Windows
 	root = ACPI_HANDLE(mdev->dev);
 	if (!root)
 		return -EOPNOTSUPP;
 
+	// TODO: ACPI_HANDLE must be implemented on Windows
 	status = acpi_get_handle(root, method, &handle);
 	if (ACPI_FAILURE(status))
 		return -EIO;
 
+	// TODO: acpi_evaluate_object must be implemented on Windows
 	status = acpi_evaluate_object(handle, NULL, NULL, &buf);
 	if (ACPI_FAILURE(status))
 		return -EIO;
@@ -31,13 +34,14 @@ mt792x_acpi_read(struct mt792x_dev *dev, u8 *method, u8 **tbl, u32 *len)
 	if (sar_root->type != ACPI_TYPE_PACKAGE ||
 	    sar_root->package.count < 4 ||
 	    sar_root->package.elements[0].type != ACPI_TYPE_INTEGER) {
-		dev_err(mdev->dev, "sar cnt = %d\n",
-			sar_root->package.count);
+		//dev_err(mdev->dev, "sar cnt = %d\n",
+		//	sar_root->package.count); // to remove
 		ret = -EINVAL;
 		goto free;
 	}
 
 	if (!*tbl) {
+		// TODO: devm_kzalloc must be implemented on Windows
 		*tbl = devm_kzalloc(mdev->dev, sar_root->package.count,
 				    GFP_KERNEL);
 		if (!*tbl) {
@@ -162,6 +166,7 @@ int mt792x_init_acpi_sar(struct mt792x_dev *dev)
 	struct mt792x_acpi_sar *asar;
 	int ret;
 
+	// TODO: devm_kzalloc must be implemented on Windows
 	asar = devm_kzalloc(dev->mt76.dev, sizeof(*asar), GFP_KERNEL);
 	if (!asar)
 		return -ENOMEM;

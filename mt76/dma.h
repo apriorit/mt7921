@@ -86,6 +86,7 @@ static inline void
 mt76_dma_reset_tx_queue(struct mt76_dev *dev, struct mt76_queue *q)
 {
 	dev->queue_ops->reset_q(dev, q);
+	// TODO: mtk_wed_device_active must be implemented on Windows
 	if (mtk_wed_device_active(&dev->mmio.wed))
 		mt76_dma_wed_setup(dev, q, true);
 }

@@ -17,6 +17,7 @@ irqreturn_t mt792x_irq_handler(int irq, void *dev_instance)
 	if (!test_bit(MT76_STATE_INITIALIZED, &dev->mphy.state))
 		return IRQ_NONE;
 
+	// TODO: tasklet_schedule must be implemented on Windows
 	tasklet_schedule(&dev->mt76.irq_tasklet);
 
 	return IRQ_HANDLED;
@@ -35,6 +36,7 @@ void mt792x_irq_tasklet(unsigned long data)
 	intr &= dev->mt76.mmio.irqmask;
 	mt76_wr(dev, MT_WFDMA0_HOST_INT_STA, intr);
 
+	// TODO: trace_dev_irq must be implemented on Windows
 	trace_dev_irq(&dev->mt76, intr, dev->mt76.mmio.irqmask);
 
 	mask |= intr & (irq_map->rx.data_complete_mask |
@@ -58,6 +60,7 @@ void mt792x_irq_tasklet(unsigned long data)
 	mt76_set_irq_mask(&dev->mt76, irq_map->host_irq_enable, mask, 0);
 
 	if (intr & dev->irq_map->tx.all_complete_mask)
+		// TODO: napi_schedule must be implemented on Windows
 		napi_schedule(&dev->mt76.tx_napi);
 
 	if (intr & irq_map->rx.wm_complete_mask)
@@ -228,7 +231,7 @@ int mt792x_wpdma_reinit_cond(struct mt792x_dev *dev)
 
 		err = mt792x_wpdma_reset(dev, false);
 		if (err) {
-			dev_err(dev->mt76.dev, "wpdma reset failed\n");
+			//dev_err(dev->mt76.dev, "wpdma reset failed\n"); // to remove (log)
 			return err;
 		}
 
@@ -311,7 +314,9 @@ int mt792x_poll_tx(struct napi_struct *napi, int budget)
 	dev = container_of(napi, struct mt792x_dev, mt76.tx_napi);
 
 	if (!mt76_connac_pm_ref(&dev->mphy, &dev->pm)) {
+		// TODO: napi_complete must be implemented on Windows
 		napi_complete(napi);
+		// TODO: queue_work must be implemented on Windows
 		queue_work(dev->mt76.wq, &dev->pm.wake_work);
 		return 0;
 	}
@@ -350,6 +355,7 @@ int mt792x_wfsys_reset(struct mt792x_dev *dev)
 	u32 addr = is_mt7921(&dev->mt76) ? 0x18000140 : 0x7c000140;
 
 	mt76_clear(dev, addr, WFSYS_SW_RST_B);
+	// TODO: msleep must be implemented on Windows
 	msleep(50);
 	mt76_set(dev, addr, WFSYS_SW_RST_B);
 

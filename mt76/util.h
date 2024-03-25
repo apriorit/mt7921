@@ -64,6 +64,7 @@ mt76_worker_setup(struct ieee80211_hw *hw, struct mt76_worker *w,
 
 	if (fn)
 		w->fn = fn;
+	// TODO: kthread_run must be implemented on Windows
 	w->task = kthread_run(__mt76_worker_fn, w,
 			      "mt76-%s %s", name, dev_name);
 
@@ -83,6 +84,7 @@ static inline void mt76_worker_schedule(struct mt76_worker *w)
 
 	if (!test_and_set_bit(MT76_WORKER_SCHEDULED, &w->state) &&
 	    !test_bit(MT76_WORKER_RUNNING, &w->state))
+		// TODO: wake_up_process must be implemented on Windows
 		wake_up_process(w->task);
 }
 
@@ -91,6 +93,7 @@ static inline void mt76_worker_disable(struct mt76_worker *w)
 	if (!w->task)
 		return;
 
+	// TODO: kthread_park must be implemented on Windows
 	kthread_park(w->task);
 	WRITE_ONCE(w->state, 0);
 }
@@ -100,6 +103,7 @@ static inline void mt76_worker_enable(struct mt76_worker *w)
 	if (!w->task)
 		return;
 
+	// TODO: kthread_unpark must be implemented on Windows
 	kthread_unpark(w->task);
 	mt76_worker_schedule(w);
 }
@@ -109,6 +113,7 @@ static inline void mt76_worker_teardown(struct mt76_worker *w)
 	if (!w->task)
 		return;
 
+	// TODO: kthread_stop must be implemented on Windows
 	kthread_stop(w->task);
 	w->task = NULL;
 }

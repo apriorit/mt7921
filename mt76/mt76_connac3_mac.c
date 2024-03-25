@@ -6,6 +6,8 @@
 #include "dma.h"
 
 #define HE_BITS(f)		cpu_to_le16(IEEE80211_RADIOTAP_HE_##f)
+// TODO: le16_encode_bits must be implemented on Windows
+// TODO: le32_get_bits must be implemented on Windows
 #define HE_PREP(f, m, v)	le16_encode_bits(le32_get_bits(v, MT_CRXV_HE_##m),\
 						 IEEE80211_RADIOTAP_HE_##f)
 
@@ -69,6 +71,7 @@ mt76_connac3_mac_decode_he_mu_radiotap(struct sk_buff *skb, __le32 *rxv)
 
 	status->flag |= RX_FLAG_RADIOTAP_HE_MU;
 
+	// TODO: skb_push must be implemented on Windows
 	he_mu = skb_push(skb, sizeof(mu_known));
 	memcpy(he_mu, &mu_known, sizeof(mu_known));
 
@@ -130,6 +133,7 @@ void mt76_connac3_mac_decode_he_radiotap(struct sk_buff *skb, __le32 *rxv,
 	he->data5 = HE_PREP(DATA5_PE_DISAMBIG, PE_DISAMBIG, rxv[5]) |
 		    le16_encode_bits(ltf_size,
 				     IEEE80211_RADIOTAP_HE_DATA5_LTF_SIZE);
+	// TODO: le32_to_cpu must be implemented on Windows
 	if (le32_to_cpu(rxv[0]) & MT_PRXV_TXBF)
 		he->data5 |= HE_BITS(DATA5_TXBF);
 	he->data6 = HE_PREP(DATA6_TXOP, TXOP_DUR, rxv[9]) |

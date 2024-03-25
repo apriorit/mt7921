@@ -18,30 +18,37 @@ MODULE_PARM_DESC(disable_usb_sg, "Disable usb scatter-gather support");
 int __mt76u_vendor_request(struct mt76_dev *dev, u8 req, u8 req_type,
 			   u16 val, u16 offset, void *buf, size_t len)
 {
+	// TODO: to_usb_interface must be implemented on Windows
 	struct usb_interface *uintf = to_usb_interface(dev->dev);
+	// TODO: interface_to_usbdev must be implemented on Windows
 	struct usb_device *udev = interface_to_usbdev(uintf);
 	unsigned int pipe;
 	int i, ret;
 
+	// TODO: lockdep_assert_held must be implemented on Windows
 	lockdep_assert_held(&dev->usb.usb_ctrl_mtx);
 
+	// TODO: usb_rcvctrlpipe must be implemented on Windows
 	pipe = (req_type & USB_DIR_IN) ? usb_rcvctrlpipe(udev, 0)
+		// TODO: usb_sndctrlpipe must be implemented on Windows
 				       : usb_sndctrlpipe(udev, 0);
 	for (i = 0; i < MT_VEND_REQ_MAX_RETRY; i++) {
 		if (test_bit(MT76_REMOVED, &dev->phy.state))
 			return -EIO;
 
+		// TODO: usb_control_msg must be implemented on Windows
 		ret = usb_control_msg(udev, pipe, req, req_type, val,
 				      offset, buf, len, MT_VEND_REQ_TOUT_MS);
 		if (ret == -ENODEV)
 			set_bit(MT76_REMOVED, &dev->phy.state);
 		if (ret >= 0 || ret == -ENODEV)
 			return ret;
+		// TODO: usleep_range must be implemented on Windows
 		usleep_range(5000, 10000);
 	}
 
-	dev_err(dev->dev, "vendor request req:%02x off:%04x failed:%d\n",
-		req, offset, ret);
+	//dev_err(dev->dev, "vendor request req:%02x off:%04x failed:%d\n",
+	//	req, offset, ret); // to remove (log)
 	return ret;
 }
 EXPORT_SYMBOL_GPL(__mt76u_vendor_request);
@@ -55,6 +62,7 @@ int mt76u_vendor_request(struct mt76_dev *dev, u8 req,
 	mutex_lock(&dev->usb.usb_ctrl_mtx);
 	ret = __mt76u_vendor_request(dev, req, req_type,
 				     val, offset, buf, len);
+	// TODO: trace_usb_reg_wr must be implemented on Windows
 	trace_usb_reg_wr(dev, offset, val);
 	mutex_unlock(&dev->usb.usb_ctrl_mtx);
 
@@ -71,7 +79,9 @@ u32 ___mt76u_rr(struct mt76_dev *dev, u8 req, u8 req_type, u32 addr)
 	ret = __mt76u_vendor_request(dev, req, req_type, addr >> 16,
 				     addr, usb->data, sizeof(__le32));
 	if (ret == sizeof(__le32))
+		// TODO: get_unaligned_le32 must be implemented on Windows
 		data = get_unaligned_le32(usb->data);
+	// TODO: trace_usb_reg_rr must be implemented on Windows
 	trace_usb_reg_rr(dev, addr, data);
 
 	return data;
@@ -114,9 +124,11 @@ void ___mt76u_wr(struct mt76_dev *dev, u8 req, u8 req_type,
 {
 	struct mt76_usb *usb = &dev->usb;
 
+	// TODO: put_unaligned_le32 must be implemented on Windows
 	put_unaligned_le32(val, usb->data);
 	__mt76u_vendor_request(dev, req, req_type, addr >> 16,
 			       addr, usb->data, sizeof(__le32));
+	// TODO: trace_usb_reg_wr must be implemented on Windows
 	trace_usb_reg_wr(dev, addr, val);
 }
 EXPORT_SYMBOL_GPL(___mt76u_wr);
@@ -282,7 +294,9 @@ mt76u_rd_rp(struct mt76_dev *dev, u32 base,
 
 static bool mt76u_check_sg(struct mt76_dev *dev)
 {
+	// TODO: to_usb_interface must be implemented on Windows
 	struct usb_interface *uintf = to_usb_interface(dev->dev);
+	// TODO: interface_to_usbdev must be implemented on Windows
 	struct usb_device *udev = interface_to_usbdev(uintf);
 
 	return (!disable_usb_sg && udev->bus->sg_tablesize > 0 &&
@@ -300,12 +314,16 @@ mt76u_set_endpoints(struct usb_interface *intf,
 	for (i = 0; i < intf_desc->desc.bNumEndpoints; i++) {
 		ep_desc = &intf_desc->endpoint[i].desc;
 
+		// TODO: usb_endpoint_is_bulk_in must be implemented on Windows
 		if (usb_endpoint_is_bulk_in(ep_desc) &&
 		    in_ep < __MT_EP_IN_MAX) {
+			// TODO: usb_endpoint_num must be implemented on Windows
 			usb->in_ep[in_ep] = usb_endpoint_num(ep_desc);
 			in_ep++;
+			// TODO: usb_endpoint_is_bulk_out must be implemented on Windows
 		} else if (usb_endpoint_is_bulk_out(ep_desc) &&
 			   out_ep < __MT_EP_OUT_MAX) {
+			// TODO: usb_endpoint_num must be implemented on Windows
 			usb->out_ep[out_ep] = usb_endpoint_num(ep_desc);
 			out_ep++;
 		}
@@ -330,6 +348,8 @@ mt76u_fill_rx_sg(struct mt76_dev *dev, struct mt76_queue *q, struct urb *urb,
 		if (!data)
 			break;
 
+		// TODO: sg_set_page must be implemented on Windows
+		// TODO: virt_to_head_page must be implemented on Windows
 		sg_set_page(&urb->sg[i], virt_to_head_page(data), q->buf_size,
 			    offset);
 	}
@@ -338,12 +358,14 @@ mt76u_fill_rx_sg(struct mt76_dev *dev, struct mt76_queue *q, struct urb *urb,
 		int j;
 
 		for (j = nsgs; j < urb->num_sgs; j++)
+			// TODO: sg_virt must be implemented on Windows
 			mt76_put_page_pool_buf(sg_virt(&urb->sg[j]), false);
 		urb->num_sgs = i;
 	}
 
 	urb->num_sgs = max_t(int, i, urb->num_sgs);
 	urb->transfer_buffer_length = urb->num_sgs * q->buf_size;
+	// TODO: sg_init_marker must be implemented on Windows
 	sg_init_marker(urb->sg, urb->num_sgs);
 
 	return i ? : -ENOMEM;
@@ -378,6 +400,7 @@ mt76u_urb_alloc(struct mt76_dev *dev, struct mt76_queue_entry *e,
 	if (!e->urb)
 		return -ENOMEM;
 
+	// TODO: usb_init_urb must be implemented on Windows
 	usb_init_urb(e->urb);
 
 	if (dev->usb.sg_en && sg_max_size > 0)
@@ -411,6 +434,7 @@ static void mt76u_urb_free(struct urb *urb)
 	if (urb->transfer_buffer)
 		mt76_put_page_pool_buf(urb->transfer_buffer, false);
 
+	// TODO: usb_free_urb must be implemented on Windows
 	usb_free_urb(urb);
 }
 
@@ -419,13 +443,17 @@ mt76u_fill_bulk_urb(struct mt76_dev *dev, int dir, int index,
 		    struct urb *urb, usb_complete_t complete_fn,
 		    void *context)
 {
+	// TODO: to_usb_interface must be implemented on Windows
 	struct usb_interface *uintf = to_usb_interface(dev->dev);
+	// TODO: interface_to_usbdev must be implemented on Windows
 	struct usb_device *udev = interface_to_usbdev(uintf);
 	unsigned int pipe;
 
 	if (dir == USB_DIR_IN)
+		// TODO: usb_rcvbulkpipe must be implemented on Windows
 		pipe = usb_rcvbulkpipe(udev, dev->usb.in_ep[index]);
 	else
+		// TODO: usb_sndbulkpipe must be implemented on Windows
 		pipe = usb_sndbulkpipe(udev, dev->usb.out_ep[index]);
 
 	urb->dev = udev;
@@ -440,12 +468,14 @@ mt76u_get_next_rx_entry(struct mt76_queue *q)
 	struct urb *urb = NULL;
 	unsigned long flags;
 
+	// TODO: spin_lock_irqsave must be implemented on Windows
 	spin_lock_irqsave(&q->lock, flags);
 	if (q->queued > 0) {
 		urb = q->entry[q->tail].urb;
 		q->tail = (q->tail + 1) % q->ndesc;
 		q->queued--;
 	}
+	// TODO: spin_unlock_irqrestore must be implemented on Windows
 	spin_unlock_irqrestore(&q->lock, flags);
 
 	return urb;
@@ -477,20 +507,27 @@ mt76u_build_rx_skb(struct mt76_dev *dev, void *data,
 	struct sk_buff *skb;
 
 	head_room = drv_flags & MT_DRV_RX_DMA_HDR ? 0 : MT_DMA_HDR_LEN;
+	// TODO: SKB_WITH_OVERHEAD must be implemented on Windows
 	if (SKB_WITH_OVERHEAD(buf_size) < head_room + len) {
 		struct page *page;
 
 		/* slow path, not enough space for data and
 		 * skb_shared_info
 		 */
+		 // TODO: alloc_skb must be implemented on Windows
 		skb = alloc_skb(MT_SKB_HEAD_LEN, GFP_ATOMIC);
 		if (!skb)
 			return NULL;
 
+		// TODO: skb_put_data must be implemented on Windows
 		skb_put_data(skb, data + head_room, MT_SKB_HEAD_LEN);
 		data += head_room + MT_SKB_HEAD_LEN;
+		// TODO: virt_to_head_page must be implemented on Windows
 		page = virt_to_head_page(data);
+		// TODO: skb_add_rx_frag must be implemented on Windows
+		// TODO: skb_shinfo must be implemented on Windows
 		skb_add_rx_frag(skb, skb_shinfo(skb)->nr_frags,
+			// TODO: page_address must be implemented on Windows
 				page, data - page_address(page),
 				len - MT_SKB_HEAD_LEN, buf_size);
 
@@ -498,11 +535,14 @@ mt76u_build_rx_skb(struct mt76_dev *dev, void *data,
 	}
 
 	/* fast path */
+		 // TODO: alloc_skb must be implemented on Windows
 	skb = build_skb(data, buf_size);
 	if (!skb)
 		return NULL;
 
+	// TODO: skb_reserve must be implemented on Windows
 	skb_reserve(skb, head_room);
+	// TODO: __skb_put must be implemented on Windows
 	__skb_put(skb, len);
 
 	return skb;
@@ -538,7 +578,9 @@ mt76u_process_rx_entry(struct mt76_dev *dev, struct urb *urb,
 	len -= data_len;
 	while (len > 0 && nsgs < urb->num_sgs) {
 		data_len = min_t(int, len, urb->sg[nsgs].length);
+		// TODO: skb_add_rx_frag must be implemented on Windows
 		skb_add_rx_frag(skb, skb_shinfo(skb)->nr_frags,
+			// TODO: sg_page must be implemented on Windows
 				sg_page(&urb->sg[nsgs]),
 				urb->sg[nsgs].offset, data_len,
 				buf_size);
@@ -546,6 +588,7 @@ mt76u_process_rx_entry(struct mt76_dev *dev, struct urb *urb,
 		nsgs++;
 	}
 
+	// TODO: skb_mark_for_recycle must be implemented on Windows
 	skb_mark_for_recycle(skb);
 	dev->drv->rx_skb(dev, MT_RXQ_MAIN, skb, NULL);
 
@@ -554,10 +597,12 @@ mt76u_process_rx_entry(struct mt76_dev *dev, struct urb *urb,
 
 static void mt76u_complete_rx(struct urb *urb)
 {
+	// TODO: dev_get_drvdata must be implemented on Windows
 	struct mt76_dev *dev = dev_get_drvdata(&urb->dev->dev);
 	struct mt76_queue *q = urb->context;
 	unsigned long flags;
 
+	// TODO: trace_rx_urb must be implemented on Windows
 	trace_rx_urb(dev, urb);
 
 	switch (urb->status) {
@@ -567,14 +612,15 @@ static void mt76u_complete_rx(struct urb *urb)
 	case -EPROTO:
 		return;
 	default:
-		dev_err_ratelimited(dev->dev, "rx urb failed: %d\n",
-				    urb->status);
+		//dev_err_ratelimited(dev->dev, "rx urb failed: %d\n",
+		//		    urb->status); // to remove (log)
 		fallthrough;
 	case 0:
 		break;
 	}
 
 	spin_lock_irqsave(&q->lock, flags);
+	// TODO: WARN_ONCE must be implemented on Windows
 	if (WARN_ONCE(q->entry[q->head].urb != urb, "rx urb mismatch"))
 		goto out;
 
@@ -593,8 +639,10 @@ mt76u_submit_rx_buf(struct mt76_dev *dev, enum mt76_rxq_id qid,
 
 	mt76u_fill_bulk_urb(dev, USB_DIR_IN, ep, urb,
 			    mt76u_complete_rx, &dev->q_rx[qid]);
+	// TODO: trace_submit_urb must be implemented on Windows
 	trace_submit_urb(dev, urb);
 
+	// TODO: usb_submit_urb must be implemented on Windows
 	return usb_submit_urb(urb, GFP_ATOMIC);
 }
 
@@ -729,6 +777,7 @@ void mt76u_stop_rx(struct mt76_dev *dev)
 		int j;
 
 		for (j = 0; j < q->ndesc; j++)
+			// TODO: usb_poison_urb must be implemented on Windows
 			usb_poison_urb(q->entry[j].urb);
 	}
 }
@@ -743,6 +792,7 @@ int mt76u_resume_rx(struct mt76_dev *dev)
 		int err, j;
 
 		for (j = 0; j < q->ndesc; j++)
+			// TODO: usb_unpoison_urb must be implemented on Windows
 			usb_unpoison_urb(q->entry[j].urb);
 
 		err = mt76u_submit_rx_buffers(dev, i);
@@ -823,8 +873,8 @@ static void mt76u_complete_tx(struct urb *urb)
 	struct mt76_dev *dev = dev_get_drvdata(&urb->dev->dev);
 	struct mt76_queue_entry *e = urb->context;
 
-	if (mt76u_urb_error(urb))
-		dev_err(dev->dev, "tx urb failed: %d\n", urb->status);
+	//if (mt76u_urb_error(urb))
+	//	dev_err(dev->dev, "tx urb failed: %d\n", urb->status); // to remove (log)
 	e->done = true;
 
 	mt76_worker_schedule(&dev->usb.status_worker);
@@ -841,7 +891,9 @@ mt76u_tx_setup_buffers(struct mt76_dev *dev, struct sk_buff *skb,
 		return 0;
 	}
 
+	// TODO: sg_init_table must be implemented on Windows
 	sg_init_table(urb->sg, MT_TX_SG_MAX_SIZE);
+	// TODO: skb_to_sgvec must be implemented on Windows
 	urb->num_sgs = skb_to_sgvec(skb, urb->sg, 0, skb->len);
 	if (!urb->num_sgs)
 		return -ENOMEM;
@@ -892,14 +944,16 @@ static void mt76u_tx_kick(struct mt76_dev *dev, struct mt76_queue *q)
 	while (q->first != q->head) {
 		urb = q->entry[q->first].urb;
 
+		// TODO: trace_submit_urb must be implemented on Windows
 		trace_submit_urb(dev, urb);
+		// TODO: usb_submit_urb must be implemented on Windows
 		err = usb_submit_urb(urb, GFP_ATOMIC);
 		if (err < 0) {
 			if (err == -ENODEV)
 				set_bit(MT76_REMOVED, &dev->phy.state);
-			else
-				dev_err(dev->dev, "tx urb submit failed:%d\n",
-					err);
+			//else
+			//	dev_err(dev->dev, "tx urb submit failed:%d\n",
+			//		err); // to remove (log)
 			break;
 		}
 		q->first = (q->first + 1) % q->ndesc;
@@ -997,7 +1051,7 @@ void mt76u_stop_tx(struct mt76_dev *dev)
 		struct mt76_queue *q;
 		int i, j;
 
-		dev_err(dev->dev, "timed out waiting for pending tx\n");
+		//dev_err(dev->dev, "timed out waiting for pending tx\n"); // to remove (log)
 
 		for (i = 0; i < IEEE80211_NUM_ACS; i++) {
 			q = dev->phy.q_tx[i];
@@ -1005,6 +1059,7 @@ void mt76u_stop_tx(struct mt76_dev *dev)
 				continue;
 
 			for (j = 0; j < q->ndesc; j++)
+				// TODO: usb_kill_urb must be implemented on Windows
 				usb_kill_urb(q->entry[j].urb);
 		}
 
@@ -1028,6 +1083,7 @@ void mt76u_stop_tx(struct mt76_dev *dev)
 		mt76_worker_enable(&dev->tx_worker);
 	}
 
+	// TODO: cancel_work_sync must be implemented on Windows
 	cancel_work_sync(&dev->usb.stat_work);
 	clear_bit(MT76_READING_STATS, &dev->phy.state);
 
@@ -1071,8 +1127,11 @@ int __mt76u_init(struct mt76_dev *dev, struct usb_interface *intf,
 	struct mt76_usb *usb = &dev->usb;
 	int err;
 
+	// TODO: INIT_WORK must be implemented on Windows
 	INIT_WORK(&usb->stat_work, mt76u_tx_status_data);
 
+	// TODO: usb_maxpacket must be implemented on Windows
+	// TODO: usb_sndctrlpipe must be implemented on Windows
 	usb->data_len = usb_maxpacket(udev, usb_sndctrlpipe(udev, 0));
 	if (usb->data_len < 32)
 		usb->data_len = 32;

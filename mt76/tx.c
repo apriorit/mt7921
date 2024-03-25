@@ -66,6 +66,7 @@ mt76_tx_status_unlock(struct mt76_dev *dev, struct sk_buff_head *list)
 
 		wcid = rcu_dereference(dev->wcid[cb->wcid]);
 		if (wcid) {
+			// TODO: wcid_to_sta must be implemented on Windows
 			status.sta = wcid_to_sta(wcid);
 			if (status.sta && (wcid->rate.flags || wcid->rate.legacy)) {
 				rs.rate_idx = wcid->rate;
@@ -78,6 +79,7 @@ mt76_tx_status_unlock(struct mt76_dev *dev, struct sk_buff_head *list)
 
 		hw = mt76_tx_status_get_hw(dev, skb);
 		spin_lock_bh(&dev->rx_lock);
+		// TODO: ieee80211_tx_status_ext must be implemented on Windows
 		ieee80211_tx_status_ext(hw, &status);
 		spin_unlock_bh(&dev->rx_lock);
 	}
@@ -117,6 +119,7 @@ mt76_tx_status_skb_done(struct mt76_dev *dev, struct sk_buff *skb,
 }
 EXPORT_SYMBOL_GPL(mt76_tx_status_skb_done);
 
+// to remove (data transmission)
 int
 mt76_tx_status_skb_add(struct mt76_dev *dev, struct mt76_wcid *wcid,
 		       struct sk_buff *skb)
@@ -166,6 +169,7 @@ out:
 }
 EXPORT_SYMBOL_GPL(mt76_tx_status_skb_add);
 
+// to remove (data transmission)
 struct sk_buff *
 mt76_tx_status_skb_get(struct mt76_dev *dev, struct mt76_wcid *wcid, int pktid,
 		       struct sk_buff_head *list)
@@ -208,6 +212,7 @@ out:
 }
 EXPORT_SYMBOL_GPL(mt76_tx_status_skb_get);
 
+// to remove (data transmission)
 void
 mt76_tx_status_check(struct mt76_dev *dev, bool flush)
 {
@@ -225,17 +230,21 @@ static void
 mt76_tx_check_non_aql(struct mt76_dev *dev, struct mt76_wcid *wcid,
 		      struct sk_buff *skb)
 {
+	// TODO: IEEE80211_SKB_CB must be implemented on Windows
 	struct ieee80211_tx_info *info = IEEE80211_SKB_CB(skb);
 	int pending;
 
 	if (!wcid || info->tx_time_est)
 		return;
 
+	// TODO: atomic_dec_return must be implemented on Windows
 	pending = atomic_dec_return(&wcid->non_aql_packets);
 	if (pending < 0)
+		// TODO: atomic_cmpxchg must be implemented on Windows
 		atomic_cmpxchg(&wcid->non_aql_packets, pending, 0);
 }
 
+// to remove (data transmission)
 void __mt76_tx_complete_skb(struct mt76_dev *dev, u16 wcid_idx, struct sk_buff *skb,
 			    struct list_head *free_list)
 {
@@ -295,6 +304,7 @@ out:
 }
 EXPORT_SYMBOL_GPL(__mt76_tx_complete_skb);
 
+// to remove (data transmission)
 static int
 __mt76_tx_queue_skb(struct mt76_phy *phy, int qid, struct sk_buff *skb,
 		    struct mt76_wcid *wcid, struct ieee80211_sta *sta,
@@ -325,6 +335,7 @@ __mt76_tx_queue_skb(struct mt76_phy *phy, int qid, struct sk_buff *skb,
 	return idx;
 }
 
+// to remove (data transmission)
 void
 mt76_tx(struct mt76_phy *phy, struct ieee80211_sta *sta,
 	struct mt76_wcid *wcid, struct sk_buff *skb)
@@ -429,6 +440,7 @@ mt76_release_buffered_frames(struct ieee80211_hw *hw, struct ieee80211_sta *sta,
 		mt76_queue_ps_skb(phy, sta, last_skb, true);
 		dev->queue_ops->kick(dev, hwq);
 	} else {
+		// TODO: ieee80211_sta_eosp must be implemented on Windows
 		ieee80211_sta_eosp(sta);
 	}
 
@@ -443,6 +455,7 @@ mt76_txq_stopped(struct mt76_queue *q)
 	       q->queued + MT_TXQ_FREE_THR >= q->ndesc;
 }
 
+// to remove (data transmission)
 static int
 mt76_txq_send_burst(struct mt76_phy *phy, struct mt76_queue *q,
 		    struct mt76_txq *mtxq, struct mt76_wcid *wcid)
@@ -509,6 +522,7 @@ mt76_txq_send_burst(struct mt76_phy *phy, struct mt76_queue *q,
 	return n_frames;
 }
 
+// to remove (data transmission)
 static int
 mt76_txq_schedule_list(struct mt76_phy *phy, enum mt76_txq_id qid)
 {
@@ -564,6 +578,7 @@ mt76_txq_schedule_list(struct mt76_phy *phy, enum mt76_txq_id qid)
 	return ret;
 }
 
+// to remove (data transmission)
 void mt76_txq_schedule(struct mt76_phy *phy, enum mt76_txq_id qid)
 {
 	int len;
@@ -585,6 +600,7 @@ void mt76_txq_schedule(struct mt76_phy *phy, enum mt76_txq_id qid)
 }
 EXPORT_SYMBOL_GPL(mt76_txq_schedule);
 
+// to remove (data transmission)
 static int
 mt76_txq_schedule_pending_wcid(struct mt76_phy *phy, struct mt76_wcid *wcid)
 {
@@ -628,6 +644,7 @@ mt76_txq_schedule_pending_wcid(struct mt76_phy *phy, struct mt76_wcid *wcid)
 	return ret;
 }
 
+// to remove (data transmission)
 static void mt76_txq_schedule_pending(struct mt76_phy *phy)
 {
 	if (list_empty(&phy->tx_list))
@@ -660,6 +677,7 @@ static void mt76_txq_schedule_pending(struct mt76_phy *phy)
 	local_bh_enable();
 }
 
+// to remove (data transmission)
 void mt76_txq_schedule_all(struct mt76_phy *phy)
 {
 	int i;
@@ -670,6 +688,7 @@ void mt76_txq_schedule_all(struct mt76_phy *phy)
 }
 EXPORT_SYMBOL_GPL(mt76_txq_schedule_all);
 
+// to remove (data transmission)
 void mt76_tx_worker_run(struct mt76_dev *dev)
 {
 	struct mt76_phy *phy;
@@ -695,6 +714,7 @@ void mt76_tx_worker_run(struct mt76_dev *dev)
 }
 EXPORT_SYMBOL_GPL(mt76_tx_worker_run);
 
+// to remove (data transmission)
 void mt76_tx_worker(struct mt76_worker *w)
 {
 	struct mt76_dev *dev = container_of(w, struct mt76_dev, tx_worker);
@@ -702,6 +722,7 @@ void mt76_tx_worker(struct mt76_worker *w)
 	mt76_tx_worker_run(dev);
 }
 
+// to remove (data transmission)
 void mt76_stop_tx_queues(struct mt76_phy *phy, struct ieee80211_sta *sta,
 			 bool send_bar)
 {
@@ -725,6 +746,7 @@ void mt76_stop_tx_queues(struct mt76_phy *phy, struct ieee80211_sta *sta,
 }
 EXPORT_SYMBOL_GPL(mt76_stop_tx_queues);
 
+// to remove (data transmission)
 void mt76_wake_tx_queue(struct ieee80211_hw *hw, struct ieee80211_txq *txq)
 {
 	struct mt76_phy *phy = hw->priv;
@@ -760,6 +782,7 @@ int mt76_skb_adjust_pad(struct sk_buff *skb, int pad)
 	/* First packet of a A-MSDU burst keeps track of the whole burst
 	 * length, need to update length of it and the last packet.
 	 */
+	 // TODO: skb_walk_frags must be implemented on Windows
 	skb_walk_frags(skb, iter) {
 		last = iter;
 		if (!iter->next) {
@@ -769,9 +792,11 @@ int mt76_skb_adjust_pad(struct sk_buff *skb, int pad)
 		}
 	}
 
+	// TODO: skb_pad must be implemented on Windows
 	if (skb_pad(last, pad))
 		return -ENOMEM;
 
+	// TODO: __skb_put must be implemented on Windows
 	__skb_put(last, pad);
 
 	return 0;

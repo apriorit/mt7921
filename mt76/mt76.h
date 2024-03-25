@@ -1229,6 +1229,7 @@ mtxq_to_txq(struct mt76_txq *mtxq)
 {
 	void *ptr = mtxq;
 
+	// TODO: container_of must be implemented on Windows
 	return container_of(ptr, struct ieee80211_txq, drv_priv);
 }
 
@@ -1240,12 +1241,15 @@ wcid_to_sta(struct mt76_wcid *wcid)
 	if (!wcid || !wcid->sta)
 		return NULL;
 
+	// TODO: container_of must be implemented on Windows
 	return container_of(ptr, struct ieee80211_sta, drv_priv);
 }
 
 static inline struct mt76_tx_cb *mt76_tx_skb_cb(struct sk_buff *skb)
 {
+	// TODO: BUILD_BUG_ON must be implemented on Windows
 	BUILD_BUG_ON(sizeof(struct mt76_tx_cb) >
+			// TODO: IEEE80211_SKB_CB must be implemented on Windows
 		     sizeof(IEEE80211_SKB_CB(skb)->status.status_driver_data));
 	return ((void *)IEEE80211_SKB_CB(skb)->status.status_driver_data);
 }
@@ -1256,6 +1260,7 @@ static inline void *mt76_skb_get_hdr(struct sk_buff *skb)
 	u8 *data = skb->data;
 
 	/* Alignment concerns */
+	// TODO: BUILD_BUG_ON must be implemented on Windows
 	BUILD_BUG_ON(sizeof(struct ieee80211_radiotap_he) % 4);
 	BUILD_BUG_ON(sizeof(struct ieee80211_radiotap_he_mu) % 4);
 
@@ -1271,11 +1276,13 @@ static inline void *mt76_skb_get_hdr(struct sk_buff *skb)
 
 static inline void mt76_insert_hdr_pad(struct sk_buff *skb)
 {
+	// TODO: ieee80211_get_hdrlen_from_skb must be implemented on Windows
 	int len = ieee80211_get_hdrlen_from_skb(skb);
 
 	if (len % 4 == 0)
 		return;
 
+	// TODO: skb_push must be implemented on Windows
 	skb_push(skb, 2);
 	memmove(skb->data, skb->data + 2, len);
 
@@ -1439,6 +1446,7 @@ static inline void mt76_testmode_reset(struct mt76_phy *phy, bool disable)
 static inline struct ieee80211_hw *
 mt76_tx_status_get_hw(struct mt76_dev *dev, struct sk_buff *skb)
 {
+	// TODO: IEEE80211_SKB_CB must be implemented on Windows
 	struct ieee80211_tx_info *info = IEEE80211_SKB_CB(skb);
 	u8 phy_idx = (info->hw_queue & MT_TX_HW_QUEUE_PHY) >> 2;
 	struct ieee80211_hw *hw = mt76_phy_hw(dev, phy_idx);
@@ -1481,16 +1489,21 @@ static inline int
 mt76u_bulk_msg(struct mt76_dev *dev, void *data, int len, int *actual_len,
 	       int timeout, int ep)
 {
+	// TODO: to_usb_interface must be implemented on Windows
 	struct usb_interface *uintf = to_usb_interface(dev->dev);
+	// TODO: interface_to_usbdev must be implemented on Windows
 	struct usb_device *udev = interface_to_usbdev(uintf);
 	struct mt76_usb *usb = &dev->usb;
 	unsigned int pipe;
 
 	if (actual_len)
+		// TODO: usb_rcvbulkpipe must be implemented on Windows
 		pipe = usb_rcvbulkpipe(udev, usb->in_ep[ep]);
 	else
+		// TODO: usb_sndbulkpipe must be implemented on Windows
 		pipe = usb_sndbulkpipe(udev, usb->out_ep[ep]);
 
+	// TODO: usb_bulk_msg must be implemented on Windows
 	return usb_bulk_msg(udev, pipe, data, len, actual_len, timeout);
 }
 
@@ -1642,8 +1655,10 @@ int mt76_rx_token_consume(struct mt76_dev *dev, void *ptr,
 int mt76_create_page_pool(struct mt76_dev *dev, struct mt76_queue *q);
 static inline void mt76_put_page_pool_buf(void *buf, bool allow_direct)
 {
+	// TODO: virt_to_head_page must be implemented on Windows
 	struct page *page = virt_to_head_page(buf);
 
+	// TODO: page_pool_put_full_page must be implemented on Windows
 	page_pool_put_full_page(page->pp, page, allow_direct);
 }
 
@@ -1652,17 +1667,21 @@ mt76_get_page_pool_buf(struct mt76_queue *q, u32 *offset, u32 size)
 {
 	struct page *page;
 
+	// TODO: page_pool_dev_alloc_frag must be implemented on Windows
 	page = page_pool_dev_alloc_frag(q->page_pool, offset, size);
 	if (!page)
 		return NULL;
 
+	// TODO: page_address must be implemented on Windows
 	return page_address(page) + *offset;
 }
 
 static inline void mt76_set_tx_blocked(struct mt76_dev *dev, bool blocked)
 {
+	// TODO: spin_lock_bh must be implemented on Windows
 	spin_lock_bh(&dev->token_lock);
 	__mt76_set_tx_blocked(dev, blocked);
+	// TODO: spin_unlock_bh must be implemented on Windows
 	spin_unlock_bh(&dev->token_lock);
 }
 
@@ -1671,8 +1690,11 @@ mt76_token_get(struct mt76_dev *dev, struct mt76_txwi_cache **ptxwi)
 {
 	int token;
 
+	// TODO: spin_lock_bh must be implemented on Windows
 	spin_lock_bh(&dev->token_lock);
+	// TODO: idr_alloc must be implemented on Windows
 	token = idr_alloc(&dev->token, *ptxwi, 0, dev->token_size, GFP_ATOMIC);
+	// TODO: spin_unlock_bh must be implemented on Windows
 	spin_unlock_bh(&dev->token_lock);
 
 	return token;
@@ -1683,8 +1705,11 @@ mt76_token_put(struct mt76_dev *dev, int token)
 {
 	struct mt76_txwi_cache *txwi;
 
+	// TODO: spin_lock_bh must be implemented on Windows
 	spin_lock_bh(&dev->token_lock);
+	// TODO: idr_remove must be implemented on Windows
 	txwi = idr_remove(&dev->token, token);
+	// TODO: spin_unlock_bh must be implemented on Windows
 	spin_unlock_bh(&dev->token_lock);
 
 	return txwi;

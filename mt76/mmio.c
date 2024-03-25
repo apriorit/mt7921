@@ -11,7 +11,9 @@ static u32 mt76_mmio_rr(struct mt76_dev *dev, u32 offset)
 {
 	u32 val;
 
+	// TODO: readl must be implemented on Windows
 	val = readl(dev->mmio.regs + offset);
+	// TODO: trace_reg_rr must be implemented on Windows
 	trace_reg_rr(dev, offset, val);
 
 	return val;
@@ -19,7 +21,9 @@ static u32 mt76_mmio_rr(struct mt76_dev *dev, u32 offset)
 
 static void mt76_mmio_wr(struct mt76_dev *dev, u32 offset, u32 val)
 {
+	// TODO: trace_reg_wr must be implemented on Windows
 	trace_reg_wr(dev, offset, val);
+	// TODO: writel must be implemented on Windows
 	writel(val, dev->mmio.regs + offset);
 }
 
@@ -33,12 +37,15 @@ static u32 mt76_mmio_rmw(struct mt76_dev *dev, u32 offset, u32 mask, u32 val)
 static void mt76_mmio_write_copy(struct mt76_dev *dev, u32 offset,
 				 const void *data, int len)
 {
+	// TODO: __iowrite32_copy must be implemented on Windows
+	// TODO: DIV_ROUND_UP must be implemented on Windows
 	__iowrite32_copy(dev->mmio.regs + offset, data, DIV_ROUND_UP(len, 4));
 }
 
 static void mt76_mmio_read_copy(struct mt76_dev *dev, u32 offset,
 				void *data, int len)
 {
+	// TODO: __ioread32_copy must be implemented on Windows
 	__ioread32_copy(data, dev->mmio.regs + offset, DIV_ROUND_UP(len, 4));
 }
 
@@ -71,16 +78,20 @@ void mt76_set_irq_mask(struct mt76_dev *dev, u32 addr,
 {
 	unsigned long flags;
 
+	// TODO: spin_lock_irqsave must be implemented on Windows
 	spin_lock_irqsave(&dev->mmio.irq_lock, flags);
 	dev->mmio.irqmask &= ~clear;
 	dev->mmio.irqmask |= set;
 	if (addr) {
+		// TODO: mtk_wed_device_active must be implemented on Windows
 		if (mtk_wed_device_active(&dev->mmio.wed))
+			// TODO: mtk_wed_device_irq_set_mask must be implemented on Windows
 			mtk_wed_device_irq_set_mask(&dev->mmio.wed,
 						    dev->mmio.irqmask);
 		else
 			mt76_mmio_wr(dev, addr, dev->mmio.irqmask);
 	}
+	// TODO: spin_unlock_irqrestore must be implemented on Windows
 	spin_unlock_irqrestore(&dev->mmio.irq_lock, flags);
 }
 EXPORT_SYMBOL_GPL(mt76_set_irq_mask);
@@ -208,6 +219,7 @@ void mt76_mmio_init(struct mt76_dev *dev, void __iomem *regs)
 	dev->bus = &mt76_mmio_ops;
 	dev->mmio.regs = regs;
 
+	// TODO: spin_lock_init must be implemented on Windows
 	spin_lock_init(&dev->mmio.irq_lock);
 }
 EXPORT_SYMBOL_GPL(mt76_mmio_init);

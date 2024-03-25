@@ -193,6 +193,7 @@ static const struct cfg80211_sar_capa mt76_sar_capa = {
 	.freq_ranges = &mt76_sar_freq_ranges[0],
 };
 
+// to remove (led)
 static int mt76_led_init(struct mt76_phy *phy)
 {
 	struct mt76_dev *dev = phy->dev;
@@ -240,6 +241,7 @@ static int mt76_led_init(struct mt76_phy *phy)
 	return led_classdev_register(dev->dev, &phy->leds.cdev);
 }
 
+// to remove (led)
 static void mt76_led_cleanup(struct mt76_phy *phy)
 {
 	if (!phy->leds.cdev.brightness_set && !phy->leds.cdev.blink_set)
@@ -253,6 +255,7 @@ static void mt76_init_stream_cap(struct mt76_phy *phy,
 				 bool vht)
 {
 	struct ieee80211_sta_ht_cap *ht_cap = &sband->ht_cap;
+	// TODO: hweight8 must be implemented on Windows
 	int i, nstream = hweight8(phy->antenna_mask);
 	struct ieee80211_sta_vht_cap *vht_cap;
 	u16 mcs_map = 0;
@@ -283,8 +286,10 @@ static void mt76_init_stream_cap(struct mt76_phy *phy,
 			mcs_map |=
 				(IEEE80211_VHT_MCS_NOT_SUPPORTED << (i * 2));
 	}
+	// TODO: cpu_to_le16 must be implemented on Windows
 	vht_cap->vht_mcs.rx_mcs_map = cpu_to_le16(mcs_map);
 	vht_cap->vht_mcs.tx_mcs_map = cpu_to_le16(mcs_map);
+	// TODO: ieee80211_hw_check must be implemented on Windows
 	if (ieee80211_hw_check(phy->hw, SUPPORTS_VHT_EXT_NSS_BW))
 		vht_cap->vht_mcs.tx_highest |=
 				cpu_to_le16(IEEE80211_VHT_EXT_NSS_BW_CAPABLE);
@@ -315,10 +320,12 @@ mt76_init_sband(struct mt76_phy *phy, struct mt76_sband *msband,
 	int size;
 
 	size = n_chan * sizeof(*chan);
+	// TODO: devm_kmemdup must be implemented on Windows
 	chanlist = devm_kmemdup(dev->dev, chan, size, GFP_KERNEL);
 	if (!chanlist)
 		return -ENOMEM;
 
+	// TODO: devm_kcalloc must be implemented on Windows
 	msband->chan = devm_kcalloc(dev->dev, n_chan, sizeof(*msband->chan),
 				    GFP_KERNEL);
 	if (!msband->chan)
@@ -426,10 +433,14 @@ mt76_phy_init(struct mt76_phy *phy, struct ieee80211_hw *hw)
 	struct mt76_dev *dev = phy->dev;
 	struct wiphy *wiphy = hw->wiphy;
 
+	// TODO: INIT_LIST_HEAD must be implemented on Windows
 	INIT_LIST_HEAD(&phy->tx_list);
+	// TODO: spin_lock_init must be implemented on Windows
 	spin_lock_init(&phy->tx_lock);
 
+	// TODO: SET_IEEE80211_DEV must be implemented on Windows
 	SET_IEEE80211_DEV(hw, dev->dev);
+	// TODO: SET_IEEE80211_PERM_ADDR must be implemented on Windows
 	SET_IEEE80211_PERM_ADDR(hw, phy->macaddr);
 
 	wiphy->features |= NL80211_FEATURE_ACTIVE_MONITOR |
@@ -438,6 +449,7 @@ mt76_phy_init(struct mt76_phy *phy, struct ieee80211_hw *hw)
 			WIPHY_FLAG_SUPPORTS_TDLS |
 			WIPHY_FLAG_AP_UAPSD;
 
+	// TODO: wiphy_ext_feature_set must be implemented on Windows
 	wiphy_ext_feature_set(wiphy, NL80211_EXT_FEATURE_CQM_RSSI_LIST);
 	wiphy_ext_feature_set(wiphy, NL80211_EXT_FEATURE_AIRTIME_FAIRNESS);
 	wiphy_ext_feature_set(wiphy, NL80211_EXT_FEATURE_AQL);
@@ -446,6 +458,7 @@ mt76_phy_init(struct mt76_phy *phy, struct ieee80211_hw *hw)
 	wiphy->available_antennas_rx = phy->antenna_mask;
 
 	wiphy->sar_capa = &mt76_sar_capa;
+	// TODO: devm_kcalloc must be implemented on Windows
 	phy->frp = devm_kcalloc(dev->dev, wiphy->sar_capa->num_freq_ranges,
 				sizeof(struct mt76_freq_range_power),
 				GFP_KERNEL);
@@ -458,6 +471,7 @@ mt76_phy_init(struct mt76_phy *phy, struct ieee80211_hw *hw)
 	if (!hw->max_tx_fragments)
 		hw->max_tx_fragments = 16;
 
+	// TODO: ieee80211_hw_set must be implemented on Windows
 	ieee80211_hw_set(hw, SIGNAL_DBM);
 	ieee80211_hw_set(hw, AMPDU_AGGREGATION);
 	ieee80211_hw_set(hw, SUPPORTS_RC_TABLE);
@@ -487,7 +501,9 @@ mt76_alloc_phy(struct mt76_dev *dev, unsigned int size,
 	unsigned int phy_size;
 	struct mt76_phy *phy;
 
+	// TODO: ALIGN must be implemented on Windows
 	phy_size = ALIGN(sizeof(*phy), 8);
+	// TODO: ieee80211_alloc_hw must be implemented on Windows
 	hw = ieee80211_alloc_hw(size + phy_size, ops);
 	if (!hw)
 		return NULL;
@@ -500,6 +516,7 @@ mt76_alloc_phy(struct mt76_dev *dev, unsigned int size,
 
 	hw->wiphy->flags |= WIPHY_FLAG_IBSS_RSN;
 	hw->wiphy->interface_modes =
+		// TODO: BIT must be implemented on Windows
 		BIT(NL80211_IFTYPE_STATION) |
 		BIT(NL80211_IFTYPE_AP) |
 #ifdef CONFIG_MAC80211_MESH
@@ -540,21 +557,24 @@ int mt76_register_phy(struct mt76_phy *phy, bool vht,
 			return ret;
 	}
 
-	if (IS_ENABLED(CONFIG_MT76_LEDS)) {
-		ret = mt76_led_init(phy);
-		if (ret)
-			return ret;
-	}
+	//if (IS_ENABLED(CONFIG_MT76_LEDS)) {
+	//	ret = mt76_led_init(phy);
+	//	if (ret)
+	//		return ret;
+	//} // to remove (led)
 
+	// TODO: wiphy_read_of_freq_limits must be implemented on Windows
 	wiphy_read_of_freq_limits(phy->hw->wiphy);
 	mt76_check_sband(phy, &phy->sband_2g, NL80211_BAND_2GHZ);
 	mt76_check_sband(phy, &phy->sband_5g, NL80211_BAND_5GHZ);
 	mt76_check_sband(phy, &phy->sband_6g, NL80211_BAND_6GHZ);
 
+	// TODO: ieee80211_register_hw must be implemented on Windows
 	ret = ieee80211_register_hw(phy->hw);
 	if (ret)
 		return ret;
 
+	// TODO: set_bit must be implemented on Windows
 	set_bit(MT76_STATE_REGISTERED, &phy->state);
 	phy->dev->phys[phy->band_idx] = phy;
 
@@ -566,12 +586,14 @@ void mt76_unregister_phy(struct mt76_phy *phy)
 {
 	struct mt76_dev *dev = phy->dev;
 
+	// TODO: test_bit must be implemented on Windows
 	if (!test_bit(MT76_STATE_REGISTERED, &phy->state))
 		return;
 
-	if (IS_ENABLED(CONFIG_MT76_LEDS))
-		mt76_led_cleanup(phy);
+	//if (IS_ENABLED(CONFIG_MT76_LEDS))
+	//	mt76_led_cleanup(phy); // to remove (led)
 	mt76_tx_status_check(dev, true);
+	// TODO: ieee80211_unregister_hw must be implemented on Windows
 	ieee80211_unregister_hw(phy->hw);
 	dev->phys[phy->band_idx] = NULL;
 }
@@ -606,6 +628,7 @@ int mt76_create_page_pool(struct mt76_dev *dev, struct mt76_queue *q)
 		pp_params.offset = 0;
 	}
 
+	// TODO: page_pool_create must be implemented on Windows
 	q->page_pool = page_pool_create(&pp_params);
 	if (IS_ERR(q->page_pool)) {
 		int err = PTR_ERR(q->page_pool);
@@ -628,6 +651,7 @@ mt76_alloc_device(struct device *pdev, unsigned int size,
 	struct mt76_dev *dev;
 	int i;
 
+	// TODO: ieee80211_alloc_hw must be implemented on Windows
 	hw = ieee80211_alloc_hw(size, ops);
 	if (!hw)
 		return NULL;
@@ -644,21 +668,27 @@ mt76_alloc_device(struct device *pdev, unsigned int size,
 	phy->band_idx = MT_BAND0;
 	dev->phys[phy->band_idx] = phy;
 
+	// TODO: spin_lock_init must be implemented on Windows
 	spin_lock_init(&dev->rx_lock);
 	spin_lock_init(&dev->lock);
 	spin_lock_init(&dev->cc_lock);
 	spin_lock_init(&dev->status_lock);
 	spin_lock_init(&dev->wed_lock);
+	// TODO: mutex_init must be implemented on Windows
 	mutex_init(&dev->mutex);
+	// TODO: init_waitqueue_head must be implemented on Windows
 	init_waitqueue_head(&dev->tx_wait);
 
+	// TODO: skb_queue_head_init must be implemented on Windows
 	skb_queue_head_init(&dev->mcu.res_q);
+	// TODO: init_waitqueue_head must be implemented on Windows
 	init_waitqueue_head(&dev->mcu.wait);
 	mutex_init(&dev->mcu.mutex);
 	dev->tx_worker.fn = mt76_tx_worker;
 
 	hw->wiphy->flags |= WIPHY_FLAG_IBSS_RSN;
 	hw->wiphy->interface_modes =
+		// TODO: BIT must be implemented on Windows
 		BIT(NL80211_IFTYPE_STATION) |
 		BIT(NL80211_IFTYPE_AP) |
 #ifdef CONFIG_MAC80211_MESH
@@ -669,11 +699,13 @@ mt76_alloc_device(struct device *pdev, unsigned int size,
 		BIT(NL80211_IFTYPE_ADHOC);
 
 	spin_lock_init(&dev->token_lock);
+	// TODO: idr_init must be implemented on Windows
 	idr_init(&dev->token);
 
 	spin_lock_init(&dev->rx_token_lock);
 	idr_init(&dev->rx_token);
 
+	// TODO: INIT_LIST_HEAD must be implemented on Windows
 	INIT_LIST_HEAD(&dev->wcid_list);
 	INIT_LIST_HEAD(&dev->sta_poll_list);
 	spin_lock_init(&dev->sta_poll_lock);
@@ -683,10 +715,13 @@ mt76_alloc_device(struct device *pdev, unsigned int size,
 	dev->token_size = dev->drv->token_size;
 
 	for (i = 0; i < ARRAY_SIZE(dev->q_rx); i++)
+		// TODO: skb_queue_head_init must be implemented on Windows
 		skb_queue_head_init(&dev->rx_skb[i]);
 
+	// TODO: alloc_ordered_workqueue must be implemented on Windows
 	dev->wq = alloc_ordered_workqueue("mt76", 0);
 	if (!dev->wq) {
+		// TODO: ieee80211_free_hw must be implemented on Windows
 		ieee80211_free_hw(hw);
 		return NULL;
 	}
@@ -702,6 +737,7 @@ int mt76_register_device(struct mt76_dev *dev, bool vht,
 	struct mt76_phy *phy = &dev->phy;
 	int ret;
 
+	// TODO: dev_set_drvdata must be implemented on Windows
 	dev_set_drvdata(dev->dev, dev);
 	mt76_wcid_init(&dev->global_wcid);
 	ret = mt76_phy_init(phy, hw);
@@ -726,23 +762,28 @@ int mt76_register_device(struct mt76_dev *dev, bool vht,
 			return ret;
 	}
 
+	// TODO: wiphy_read_of_freq_limits must be implemented on Windows
 	wiphy_read_of_freq_limits(hw->wiphy);
 	mt76_check_sband(&dev->phy, &phy->sband_2g, NL80211_BAND_2GHZ);
 	mt76_check_sband(&dev->phy, &phy->sband_5g, NL80211_BAND_5GHZ);
 	mt76_check_sband(&dev->phy, &phy->sband_6g, NL80211_BAND_6GHZ);
 
-	if (IS_ENABLED(CONFIG_MT76_LEDS)) {
-		ret = mt76_led_init(phy);
-		if (ret)
-			return ret;
-	}
+	//if (IS_ENABLED(CONFIG_MT76_LEDS)) {
+	//	ret = mt76_led_init(phy);
+	//	if (ret)
+	//		return ret;
+	//} // to remove (led)
 
+	// TODO: ieee80211_register_hw must be implemented on Windows
 	ret = ieee80211_register_hw(hw);
 	if (ret)
 		return ret;
 
+	// TODO: mt76_worker_setup must be implemented on Windows
 	WARN_ON(mt76_worker_setup(hw, &dev->tx_worker, NULL, "tx"));
+	// TODO: set_bit must be implemented on Windows
 	set_bit(MT76_STATE_REGISTERED, &phy->state);
+	// TODO: sched_set_fifo_low must be implemented on Windows
 	sched_set_fifo_low(dev->tx_worker.task);
 
 	return 0;
@@ -756,10 +797,11 @@ void mt76_unregister_device(struct mt76_dev *dev)
 	if (!test_bit(MT76_STATE_REGISTERED, &dev->phy.state))
 		return;
 
-	if (IS_ENABLED(CONFIG_MT76_LEDS))
-		mt76_led_cleanup(&dev->phy);
+	//if (IS_ENABLED(CONFIG_MT76_LEDS))
+	//	mt76_led_cleanup(&dev->phy); // to remove (led)
 	mt76_tx_status_check(dev, true);
 	mt76_wcid_cleanup(dev, &dev->global_wcid);
+	// TODO: ieee80211_unregister_hw must be implemented on Windows
 	ieee80211_unregister_hw(hw);
 }
 EXPORT_SYMBOL_GPL(mt76_unregister_device);
@@ -768,9 +810,11 @@ void mt76_free_device(struct mt76_dev *dev)
 {
 	mt76_worker_teardown(&dev->tx_worker);
 	if (dev->wq) {
+		// TODO: destroy_workqueue must be implemented on Windows
 		destroy_workqueue(dev->wq);
 		dev->wq = NULL;
 	}
+	// TODO: ieee80211_free_hw must be implemented on Windows
 	ieee80211_free_hw(dev->hw);
 }
 EXPORT_SYMBOL_GPL(mt76_free_device);
@@ -791,10 +835,12 @@ static void mt76_rx_release_amsdu(struct mt76_phy *phy, enum mt76_rxq_id q)
 	 * subframe has a LLC/SNAP header in the location of the destination
 	 * address.
 	 */
+	 // TODO: skb_shinfo must be implemented on Windows
 	if (skb_shinfo(skb)->frag_list) {
 		int offset = 0;
 
 		if (!(status->flag & RX_FLAG_8023)) {
+			// TODO: ieee80211_get_hdrlen_from_skb must be implemented on Windows
 			offset = ieee80211_get_hdrlen_from_skb(skb);
 
 			if ((status->flag &
@@ -803,11 +849,14 @@ static void mt76_rx_release_amsdu(struct mt76_phy *phy, enum mt76_rxq_id q)
 				offset += 8;
 		}
 
+		// TODO: ether_addr_equal must be implemented on Windows
 		if (ether_addr_equal(skb->data + offset, rfc1042_header)) {
+			// TODO: dev_kfree_skb must be implemented on Windows
 			dev_kfree_skb(skb);
 			return;
 		}
 	}
+	// TODO: __skb_queue_tail must be implemented on Windows
 	__skb_queue_tail(&dev->rx_skb[q], skb);
 }
 
@@ -840,6 +889,7 @@ void mt76_rx(struct mt76_dev *dev, enum mt76_rxq_id q, struct sk_buff *skb)
 	struct mt76_phy *phy = mt76_dev_phy(dev, status->phy_idx);
 
 	if (!test_bit(MT76_STATE_RUNNING, &phy->state)) {
+		// TODO: dev_kfree_skb must be implemented on Windows
 		dev_kfree_skb(skb);
 		return;
 	}
@@ -892,6 +942,8 @@ void mt76_update_survey_active_time(struct mt76_phy *phy, ktime_t time)
 {
 	struct mt76_channel_state *state = phy->chan_state;
 
+	// TODO: ktime_to_us must be implemented on Windows
+	// TODO: ktime_sub must be implemented on Windows
 	state->cc_active += ktime_to_us(ktime_sub(time,
 						  phy->survey_time));
 	phy->survey_time = time;
@@ -906,15 +958,18 @@ void mt76_update_survey(struct mt76_phy *phy)
 	if (dev->drv->update_survey)
 		dev->drv->update_survey(phy);
 
+	// TODO: ktime_get_boottime must be implemented on Windows
 	cur_time = ktime_get_boottime();
 	mt76_update_survey_active_time(phy, cur_time);
 
 	if (dev->drv->drv_flags & MT_DRV_SW_RX_AIRTIME) {
 		struct mt76_channel_state *state = phy->chan_state;
 
+		// TODO: spin_lock_bh must be implemented on Windows
 		spin_lock_bh(&dev->cc_lock);
 		state->cc_bss_rx += dev->cur_cc_bss_rx;
 		dev->cur_cc_bss_rx = 0;
+		// TODO: spin_unlock_bh must be implemented on Windows
 		spin_unlock_bh(&dev->cc_lock);
 	}
 }
@@ -928,6 +983,7 @@ void mt76_set_channel(struct mt76_phy *phy)
 	bool offchannel = hw->conf.flags & IEEE80211_CONF_OFFCHANNEL;
 	int timeout = HZ / 5;
 
+	// TODO: wait_event_timeout must be implemented on Windows
 	wait_event_timeout(dev->tx_wait, !mt76_has_tx_pending(phy), timeout);
 	mt76_update_survey(phy);
 
@@ -956,6 +1012,7 @@ int mt76_get_survey(struct ieee80211_hw *hw, int idx,
 	struct mt76_channel_state *state;
 	int ret = 0;
 
+	// TODO: mutex_lock must be implemented on Windows
 	mutex_lock(&dev->mutex);
 	if (idx == 0 && dev->drv->update_survey)
 		mt76_update_survey(phy);
@@ -994,6 +1051,7 @@ int mt76_get_survey(struct ieee80211_hw *hw, int idx,
 			survey->filled |= SURVEY_INFO_TIME_BSS_RX;
 	}
 
+	// TODO: div_u64 must be implemented on Windows
 	survey->time_busy = div_u64(state->cc_busy, 1000);
 	survey->time_rx = div_u64(state->cc_rx, 1000);
 	survey->time = div_u64(state->cc_active, 1000);
@@ -1005,6 +1063,7 @@ int mt76_get_survey(struct ieee80211_hw *hw, int idx,
 	spin_unlock_bh(&dev->cc_lock);
 
 out:
+	// TODO: mutex_unlock must be implemented on Windows
 	mutex_unlock(&dev->mutex);
 
 	return ret;
@@ -1029,11 +1088,13 @@ void mt76_wcid_key_setup(struct mt76_dev *dev, struct mt76_wcid *wcid,
 
 	/* data frame */
 	for (i = 0; i < IEEE80211_NUM_TIDS; i++) {
+		// TODO: ieee80211_get_key_rx_seq must be implemented on Windows
 		ieee80211_get_key_rx_seq(key, i, &seq);
 		memcpy(wcid->rx_key_pn[i], seq.ccmp.pn, sizeof(seq.ccmp.pn));
 	}
 
 	/* robust management frame */
+	// TODO: ieee80211_get_key_rx_seq must be implemented on Windows
 	ieee80211_get_key_rx_seq(key, -1, &seq);
 	memcpy(wcid->rx_key_pn[i], seq.ccmp.pn, sizeof(seq.ccmp.pn));
 
@@ -1074,6 +1135,7 @@ mt76_rx_convert(struct mt76_dev *dev, struct sk_buff *skb,
 		struct ieee80211_hw **hw,
 		struct ieee80211_sta **sta)
 {
+	// TODO: IEEE80211_SKB_RXCB must be implemented on Windows
 	struct ieee80211_rx_status *status = IEEE80211_SKB_RXCB(skb);
 	struct ieee80211_hdr *hdr = mt76_skb_get_hdr(skb);
 	struct mt76_rx_status mstat;
@@ -1106,10 +1168,14 @@ mt76_rx_convert(struct mt76_dev *dev, struct sk_buff *skb,
 	if (status->signal <= -128)
 		status->flag |= RX_FLAG_NO_SIGNAL_VAL;
 
+	// TODO: ieee80211_is_beacon must be implemented on Windows
 	if (ieee80211_is_beacon(hdr->frame_control) ||
+		// TODO: ieee80211_is_probe_resp must be implemented on Windows
 	    ieee80211_is_probe_resp(hdr->frame_control))
+		// TODO: ktime_get_boottime_ns must be implemented on Windows
 		status->boottime_ns = ktime_get_boottime_ns();
 
+	// TODO: BUILD_BUG_ON must be implemented on Windows
 	BUILD_BUG_ON(sizeof(mstat) > sizeof(skb->cb));
 	BUILD_BUG_ON(sizeof(status->chain_signal) !=
 		     sizeof(mstat.chain_signal));
@@ -1148,7 +1214,9 @@ mt76_check_ccmp_pn(struct sk_buff *skb)
 		 * Validate the first fragment both here and in mac80211
 		 * All further fragments will be validated by mac80211 only.
 		 */
+		 // TODO: ieee80211_is_frag must be implemented on Windows
 		if (ieee80211_is_frag(hdr) &&
+			// TODO: ieee80211_is_first_frag must be implemented on Windows
 		    !ieee80211_is_first_frag(hdr->frame_control))
 			return;
 	}
@@ -1159,7 +1227,9 @@ mt76_check_ccmp_pn(struct sk_buff *skb)
 	 * individually addressed robust Management frames that are received
 	 * with the To DS subfield equal to 0, [...]
 	 */
+	 // TODO: ieee80211_is_mgmt must be implemented on Windows
 	if (ieee80211_is_mgmt(hdr->frame_control) &&
+		// TODO: ieee80211_has_tods must be implemented on Windows
 	    !ieee80211_has_tods(hdr->frame_control))
 		security_idx = IEEE80211_NUM_TIDS;
 
@@ -1195,15 +1265,19 @@ mt76_airtime_report(struct mt76_dev *dev, struct mt76_rx_status *status,
 	u32 airtime;
 	u8 tidno = status->qos_ctl & IEEE80211_QOS_CTL_TID_MASK;
 
+	// TODO: ieee80211_calc_rx_airtime must be implemented on Windows
 	airtime = ieee80211_calc_rx_airtime(dev->hw, &info, len);
+	// TODO: spin_lock must be implemented on Windows
 	spin_lock(&dev->cc_lock);
 	dev->cur_cc_bss_rx += airtime;
+	// TODO: spin_unlock must be implemented on Windows
 	spin_unlock(&dev->cc_lock);
 
 	if (!wcid || !wcid->sta)
 		return;
 
 	sta = container_of((void *)wcid, struct ieee80211_sta, drv_priv);
+	// TODO: ieee80211_sta_register_airtime must be implemented on Windows
 	ieee80211_sta_register_airtime(sta, tidno, 0, airtime);
 }
 
@@ -1218,6 +1292,7 @@ mt76_airtime_flush_ampdu(struct mt76_dev *dev)
 
 	wcid_idx = dev->rx_ampdu_status.wcid_idx;
 	if (wcid_idx < ARRAY_SIZE(dev->wcid))
+		// TODO: rcu_dereference must be implemented on Windows
 		wcid = rcu_dereference(dev->wcid[wcid_idx]);
 	else
 		wcid = NULL;
@@ -1244,6 +1319,7 @@ mt76_airtime_check(struct mt76_dev *dev, struct sk_buff *skb)
 		if (status->flag & RX_FLAG_8023)
 			return;
 
+		// TODO: ether_addr_equal must be implemented on Windows
 		if (!ether_addr_equal(hdr->addr1, dev->phy.macaddr))
 			return;
 
@@ -1281,8 +1357,10 @@ mt76_check_sta(struct mt76_dev *dev, struct sk_buff *skb)
 	bool ps;
 
 	hw = mt76_phy_hw(dev, status->phy_idx);
+	// TODO: ieee80211_is_pspoll must be implemented on Windows
 	if (ieee80211_is_pspoll(hdr->frame_control) && !wcid &&
 	    !(status->flag & RX_FLAG_8023)) {
+		// TODO: ieee80211_find_sta_by_ifaddr must be implemented on Windows
 		sta = ieee80211_find_sta_by_ifaddr(hw, hdr->addr2, NULL);
 		if (sta)
 			wcid = status->wcid = (struct mt76_wcid *)sta->drv_priv;
@@ -1293,9 +1371,11 @@ mt76_check_sta(struct mt76_dev *dev, struct sk_buff *skb)
 	if (!wcid || !wcid->sta)
 		return;
 
+	// TODO: container_of must be implemented on Windows
 	sta = container_of((void *)wcid, struct ieee80211_sta, drv_priv);
 
 	if (status->signal <= 0)
+		// TODO: ewma_signal_add must be implemented on Windows
 		ewma_signal_add(&wcid->rssi, -status->signal);
 
 	wcid->inactive_count = 0;
@@ -1306,20 +1386,29 @@ mt76_check_sta(struct mt76_dev *dev, struct sk_buff *skb)
 	if (!test_bit(MT_WCID_FLAG_CHECK_PS, &wcid->flags))
 		return;
 
+	// TODO: ieee80211_is_pspoll must be implemented on Windows
 	if (ieee80211_is_pspoll(hdr->frame_control)) {
+		// TODO: ieee80211_sta_pspoll must be implemented on Windows
 		ieee80211_sta_pspoll(sta);
 		return;
 	}
 
+	// TODO: ieee80211_has_morefrags must be implemented on Windows
 	if (ieee80211_has_morefrags(hdr->frame_control) ||
+		// TODO: ieee80211_is_mgmt must be implemented on Windows
 	    !(ieee80211_is_mgmt(hdr->frame_control) ||
+			// TODO: ieee80211_is_data must be implemented on Windows
 	      ieee80211_is_data(hdr->frame_control)))
 		return;
 
+	// TODO: ieee80211_has_pm must be implemented on Windows
 	ps = ieee80211_has_pm(hdr->frame_control);
 
+	// TODO: ieee80211_is_data_qos must be implemented on Windows
 	if (ps && (ieee80211_is_data_qos(hdr->frame_control) ||
+		// TODO: ieee80211_is_qos_nullfunc must be implemented on Windows
 		   ieee80211_is_qos_nullfunc(hdr->frame_control)))
+		// TODO: ieee80211_sta_uapsd_trigger must be implemented on Windows
 		ieee80211_sta_uapsd_trigger(sta, tidno);
 
 	if (!!test_bit(MT_WCID_FLAG_PS, &wcid->flags) == ps)
@@ -1334,6 +1423,7 @@ mt76_check_sta(struct mt76_dev *dev, struct sk_buff *skb)
 	if (!ps)
 		clear_bit(MT_WCID_FLAG_PS, &wcid->flags);
 
+	// TODO: ieee80211_sta_ps_transition must be implemented on Windows
 	ieee80211_sta_ps_transition(sta, ps);
 }
 
@@ -1343,15 +1433,21 @@ void mt76_rx_complete(struct mt76_dev *dev, struct sk_buff_head *frames,
 	struct ieee80211_sta *sta;
 	struct ieee80211_hw *hw;
 	struct sk_buff *skb, *tmp;
+	// TODO: LIST_HEAD must be implemented on Windows
 	LIST_HEAD(list);
 
+	// TODO: spin_lock must be implemented on Windows
 	spin_lock(&dev->rx_lock);
+	// TODO: __skb_dequeue must be implemented on Windows
 	while ((skb = __skb_dequeue(frames)) != NULL) {
+		// TODO: skb_shinfo must be implemented on Windows
 		struct sk_buff *nskb = skb_shinfo(skb)->frag_list;
 
 		mt76_check_ccmp_pn(skb);
+		// TODO: skb_shinfo must be implemented on Windows
 		skb_shinfo(skb)->frag_list = NULL;
 		mt76_rx_convert(dev, skb, &hw, &sta);
+		// TODO: ieee80211_rx_list must be implemented on Windows
 		ieee80211_rx_list(hw, sta, skb, &list);
 
 		/* subsequent amsdu frames */
@@ -1361,18 +1457,24 @@ void mt76_rx_complete(struct mt76_dev *dev, struct sk_buff_head *frames,
 			skb->next = NULL;
 
 			mt76_rx_convert(dev, skb, &hw, &sta);
+			// TODO: ieee80211_rx_list must be implemented on Windows
 			ieee80211_rx_list(hw, sta, skb, &list);
 		}
 	}
+	// TODO: spin_unlock must be implemented on Windows
 	spin_unlock(&dev->rx_lock);
 
 	if (!napi) {
+		// TODO: netif_receive_skb_list must be implemented on Windows
 		netif_receive_skb_list(&list);
 		return;
 	}
 
+	// TODO: list_for_each_entry_safe must be implemented on Windows
 	list_for_each_entry_safe(skb, tmp, &list, list) {
+		// TODO: skb_list_del_init must be implemented on Windows
 		skb_list_del_init(skb);
+		// TODO: napi_gro_receive must be implemented on Windows
 		napi_gro_receive(napi, skb);
 	}
 }
@@ -1383,11 +1485,15 @@ void mt76_rx_poll_complete(struct mt76_dev *dev, enum mt76_rxq_id q,
 	struct sk_buff_head frames;
 	struct sk_buff *skb;
 
+	// TODO: __skb_queue_head_init must be implemented on Windows
 	__skb_queue_head_init(&frames);
 
+	// TODO: __skb_dequeue must be implemented on Windows
 	while ((skb = __skb_dequeue(&dev->rx_skb[q])) != NULL) {
 		mt76_check_sta(dev, skb);
+		// TODO: mtk_wed_device_active must be implemented on Windows
 		if (mtk_wed_device_active(&dev->mmio.wed))
+			// TODO: __skb_queue_tail must be implemented on Windows
 			__skb_queue_tail(&frames, skb);
 		else
 			mt76_rx_aggr_reorder(skb, &frames);
@@ -1422,10 +1528,12 @@ mt76_sta_add(struct mt76_phy *phy, struct ieee80211_vif *vif,
 		mtxq->wcid = wcid->idx;
 	}
 
+	// TODO: ewma_signal_init must be implemented on Windows
 	ewma_signal_init(&wcid->rssi);
 	if (phy->band_idx == MT_BAND1)
 		mt76_wcid_mask_set(dev->wcid_phy_mask, wcid->idx);
 	wcid->phy_idx = phy->band_idx;
+	// TODO: rcu_assign_pointer must be implemented on Windows
 	rcu_assign_pointer(dev->wcid[wcid->idx], wcid);
 
 	mt76_wcid_init(wcid);
@@ -1497,6 +1605,7 @@ void mt76_sta_pre_rcu_remove(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
 
 	mutex_lock(&dev->mutex);
 	spin_lock_bh(&dev->status_lock);
+	// TODO: rcu_assign_pointer must be implemented on Windows
 	rcu_assign_pointer(dev->wcid[wcid->idx], NULL);
 	spin_unlock_bh(&dev->status_lock);
 	mutex_unlock(&dev->mutex);
@@ -1505,10 +1614,14 @@ EXPORT_SYMBOL_GPL(mt76_sta_pre_rcu_remove);
 
 void mt76_wcid_init(struct mt76_wcid *wcid)
 {
+	// TODO: INIT_LIST_HEAD must be implemented on Windows
 	INIT_LIST_HEAD(&wcid->tx_list);
+	// TODO: skb_queue_head_init must be implemented on Windows
 	skb_queue_head_init(&wcid->tx_pending);
 
+	// TODO: INIT_LIST_HEAD must be implemented on Windows
 	INIT_LIST_HEAD(&wcid->list);
+	// TODO: idr_init must be implemented on Windows
 	idr_init(&wcid->pktid);
 }
 EXPORT_SYMBOL_GPL(mt76_wcid_init);
@@ -1524,21 +1637,28 @@ void mt76_wcid_cleanup(struct mt76_dev *dev, struct mt76_wcid *wcid)
 	mt76_tx_status_skb_get(dev, wcid, -1, &list);
 	mt76_tx_status_unlock(dev, &list);
 
+	// TODO: idr_destroy must be implemented on Windows
 	idr_destroy(&wcid->pktid);
 
+	// TODO: spin_lock_bh must be implemented on Windows
 	spin_lock_bh(&phy->tx_lock);
 
+	// TODO: list_empty must be implemented on Windows
 	if (!list_empty(&wcid->tx_list))
+		// TODO: list_del_init must be implemented on Windows
 		list_del_init(&wcid->tx_list);
 
 	spin_lock(&wcid->tx_pending.lock);
+	// TODO: skb_queue_splice_tail_init must be implemented on Windows
 	skb_queue_splice_tail_init(&wcid->tx_pending, &list);
 	spin_unlock(&wcid->tx_pending.lock);
 
 	spin_unlock_bh(&phy->tx_lock);
 
+	// TODO: __skb_dequeue must be implemented on Windows
 	while ((skb = __skb_dequeue(&list)) != NULL) {
 		hw = mt76_tx_status_get_hw(dev, skb);
+		// TODO: ieee80211_free_txskb must be implemented on Windows
 		ieee80211_free_txskb(hw, skb);
 	}
 }
@@ -1548,9 +1668,11 @@ int mt76_get_txpower(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
 		     int *dbm)
 {
 	struct mt76_phy *phy = hw->priv;
+	// TODO: hweight16 must be implemented on Windows
 	int n_chains = hweight16(phy->chainmask);
 	int delta = mt76_tx_power_nss_delta(n_chains);
 
+	// TODO: DIV_ROUND_UP must be implemented on Windows
 	*dbm = DIV_ROUND_UP(phy->txpower_cur + delta, 2);
 
 	return 0;
@@ -1596,6 +1718,7 @@ int mt76_get_sar_power(struct mt76_phy *phy,
 	if (power > 127 || power < -127)
 		power = 127;
 
+	// TODO: ieee80211_channel_to_frequency must be implemented on Windows
 	freq = ieee80211_channel_to_frequency(chan->hw_value, chan->band);
 	for (i = 0 ; i < capa->num_freq_ranges; i++) {
 		if (phy->frp[i].range &&
@@ -1613,7 +1736,9 @@ EXPORT_SYMBOL_GPL(mt76_get_sar_power);
 static void
 __mt76_csa_finish(void *priv, u8 *mac, struct ieee80211_vif *vif)
 {
+	// TODO: ieee80211_beacon_cntdwn_is_complete must be implemented on Windows
 	if (vif->bss_conf.csa_active && ieee80211_beacon_cntdwn_is_complete(vif))
+		// TODO: ieee80211_csa_finish must be implemented on Windows
 		ieee80211_csa_finish(vif);
 }
 
@@ -1622,6 +1747,7 @@ void mt76_csa_finish(struct mt76_dev *dev)
 	if (!dev->csa_complete)
 		return;
 
+	// TODO: ieee80211_iterate_active_interfaces_atomic must be implemented on Windows
 	ieee80211_iterate_active_interfaces_atomic(dev->hw,
 		IEEE80211_IFACE_ITER_RESUME_ALL,
 		__mt76_csa_finish, dev);
@@ -1638,11 +1764,13 @@ __mt76_csa_check(void *priv, u8 *mac, struct ieee80211_vif *vif)
 	if (!vif->bss_conf.csa_active)
 		return;
 
+	// TODO: ieee80211_beacon_cntdwn_is_complete must be implemented on Windows
 	dev->csa_complete |= ieee80211_beacon_cntdwn_is_complete(vif);
 }
 
 void mt76_csa_check(struct mt76_dev *dev)
 {
+	// TODO: ieee80211_iterate_active_interfaces_atomic must be implemented on Windows
 	ieee80211_iterate_active_interfaces_atomic(dev->hw,
 		IEEE80211_IFACE_ITER_RESUME_ALL,
 		__mt76_csa_check, dev);
@@ -1659,9 +1787,11 @@ EXPORT_SYMBOL_GPL(mt76_set_tim);
 void mt76_insert_ccmp_hdr(struct sk_buff *skb, u8 key_id)
 {
 	struct mt76_rx_status *status = (struct mt76_rx_status *)skb->cb;
+	// TODO: ieee80211_get_hdrlen_from_skb must be implemented on Windows
 	int hdr_len = ieee80211_get_hdrlen_from_skb(skb);
 	u8 *hdr, *pn = status->iv;
 
+	// TODO: __skb_push must be implemented on Windows
 	__skb_push(skb, 8);
 	memmove(skb->data, skb->data + 8, hdr_len);
 	hdr = skb->data + hdr_len;
@@ -1741,6 +1871,7 @@ mt76_init_queue(struct mt76_dev *dev, int qid, int idx, int n_desc,
 	struct mt76_queue *hwq;
 	int err;
 
+	// TODO: devm_kzalloc must be implemented on Windows
 	hwq = devm_kzalloc(dev->dev, sizeof(*hwq), GFP_KERNEL);
 	if (!hwq)
 		return ERR_PTR(-ENOMEM);
@@ -1823,9 +1954,12 @@ void mt76_ethtool_page_pool_stats(struct mt76_dev *dev, u64 *data, int *index)
 	int i;
 
 	mt76_for_each_q_rx(dev, i)
+		// TODO: page_pool_get_stats must be implemented on Windows
 		page_pool_get_stats(dev->q_rx[i].page_pool, &stats);
 
+	// TODO: page_pool_ethtool_stats_get must be implemented on Windows
 	page_pool_ethtool_stats_get(data, &stats);
+	// TODO: page_pool_ethtool_stats_get_count must be implemented on Windows
 	*index += page_pool_ethtool_stats_get_count();
 #endif
 }
@@ -1848,6 +1982,7 @@ enum mt76_dfs_state mt76_phy_dfs_state(struct mt76_phy *phy)
 		return MT_DFS_STATE_DISABLED;
 	}
 
+	// TODO: cfg80211_reg_can_beacon must be implemented on Windows
 	if (!cfg80211_reg_can_beacon(hw->wiphy, &phy->chandef, NL80211_IFTYPE_AP))
 		return MT_DFS_STATE_CAC;
 

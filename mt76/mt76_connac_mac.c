@@ -19,7 +19,9 @@ void mt76_connac_gen_ppe_thresh(u8 *he_ppet, int nss)
 				ru_bit_mask);
 
 	ppet_bits = IEEE80211_PPE_THRES_INFO_PPET_SIZE *
+		// TODO: hweight8 must be implemented on Windows
 		    nss * hweight8(ru_bit_mask) * 2;
+	// TODO: DIV_ROUND_UP must be implemented on Windows
 	ppet_size = DIV_ROUND_UP(ppet_bits, 8);
 
 	for (i = 0; i < ppet_size - 1; i++)
@@ -37,6 +39,7 @@ int mt76_connac_pm_wake(struct mt76_phy *phy, struct mt76_connac_pm *pm)
 	if (mt76_is_usb(dev))
 		return 0;
 
+	// TODO: cancel_delayed_work_sync must be implemented on Windows
 	cancel_delayed_work_sync(&pm->ps_work);
 	if (!test_bit(MT76_STATE_PM, &phy->state))
 		return 0;
@@ -44,10 +47,13 @@ int mt76_connac_pm_wake(struct mt76_phy *phy, struct mt76_connac_pm *pm)
 	if (pm->suspended)
 		return 0;
 
+	// TODO: queue_work must be implemented on Windows
 	queue_work(dev->wq, &pm->wake_work);
+	// TODO: wait_event_timeout must be implemented on Windows
 	if (!wait_event_timeout(pm->wait,
 				!test_bit(MT76_STATE_PM, &phy->state),
 				3 * HZ)) {
+		// TODO: ieee80211_wake_queues must be implemented on Windows
 		ieee80211_wake_queues(phy->hw);
 		return -ETIMEDOUT;
 	}
@@ -73,7 +79,9 @@ void mt76_connac_power_save_sched(struct mt76_phy *phy,
 	pm->last_activity = jiffies;
 
 	if (!test_bit(MT76_STATE_PM, &phy->state)) {
+		// TODO: cancel_delayed_work must be implemented on Windows
 		cancel_delayed_work(&phy->mac_work);
+		// TODO: queue_delayed_work must be implemented on Windows
 		queue_delayed_work(dev->wq, &pm->ps_work, pm->idle_timeout);
 	}
 }
@@ -84,14 +92,17 @@ void mt76_connac_free_pending_tx_skbs(struct mt76_connac_pm *pm,
 {
 	int i;
 
+	// TODO: spin_lock_bh must be implemented on Windows
 	spin_lock_bh(&pm->txq_lock);
 	for (i = 0; i < IEEE80211_NUM_ACS; i++) {
 		if (wcid && pm->tx_q[i].wcid != wcid)
 			continue;
 
+		// TODO: dev_kfree_skb must be implemented on Windows
 		dev_kfree_skb(pm->tx_q[i].skb);
 		pm->tx_q[i].skb = NULL;
 	}
+	// TODO: spin_unlock_bh must be implemented on Windows
 	spin_unlock_bh(&pm->txq_lock);
 }
 EXPORT_SYMBOL_GPL(mt76_connac_free_pending_tx_skbs);
@@ -101,18 +112,24 @@ void mt76_connac_pm_queue_skb(struct ieee80211_hw *hw,
 			      struct mt76_wcid *wcid,
 			      struct sk_buff *skb)
 {
+	// TODO: skb_get_queue_mapping must be implemented on Windows
 	int qid = skb_get_queue_mapping(skb);
 	struct mt76_phy *phy = hw->priv;
 
+	// TODO: spin_lock_bh must be implemented on Windows
 	spin_lock_bh(&pm->txq_lock);
 	if (!pm->tx_q[qid].skb) {
+		// TODO: ieee80211_stop_queues must be implemented on Windows
 		ieee80211_stop_queues(hw);
 		pm->tx_q[qid].wcid = wcid;
 		pm->tx_q[qid].skb = skb;
+		// TODO: queue_work must be implemented on Windows
 		queue_work(phy->dev->wq, &pm->wake_work);
 	} else {
+		// TODO: dev_kfree_skb must be implemented on Windows
 		dev_kfree_skb(skb);
 	}
+	// TODO: spin_unlock_bh must be implemented on Windows
 	spin_unlock_bh(&pm->txq_lock);
 }
 EXPORT_SYMBOL_GPL(mt76_connac_pm_queue_skb);
@@ -147,6 +164,7 @@ void mt76_connac_tx_complete_skb(struct mt76_dev *mdev,
 				 struct mt76_queue_entry *e)
 {
 	if (!e->txwi) {
+		// TODO: dev_kfree_skb_any must be implemented on Windows
 		dev_kfree_skb_any(e->skb);
 		return;
 	}
@@ -203,7 +221,9 @@ mt76_connac_txp_skb_unmap_fw(struct mt76_dev *mdev,
 	int i;
 
 	for (i = 0; i < txp->nbuf; i++)
+		// TODO: dma_unmap_single must be implemented on Windows
 		dma_unmap_single(dev, le32_to_cpu(txp->buf[i]),
+			// TODO: le16_to_cpu must be implemented on Windows
 				 le16_to_cpu(txp->len[i]), DMA_TO_DEVICE);
 }
 
@@ -227,6 +247,7 @@ mt76_connac_txp_skb_unmap_hw(struct mt76_dev *dev,
 		len = le16_to_cpu(ptr->len0);
 		last = len & last_mask;
 		len &= MT_TXD_LEN_MASK;
+		// TODO: dma_unmap_single must be implemented on Windows
 		dma_unmap_single(dev->dev, le32_to_cpu(ptr->buf0), len,
 				 DMA_TO_DEVICE);
 		if (last)
@@ -278,9 +299,9 @@ EXPORT_SYMBOL_GPL(mt76_connac_init_tx_queues);
 	for (nss = 0; i < ARRAY_SIZE(mask->control[band]._mcs); i++) {	\
 		if (!mask->control[band]._mcs[i])			\
 			continue;					\
-		if (hweight16(mask->control[band]._mcs[i]) == 1) {	\
+		if (hweight16(mask->control[band]._mcs[i]) == 1) {	/*TODO: hweight16 must be implemented on Windows*/ \
 			mode = MT_PHY_TYPE_##_mode;			\
-			rateidx = ffs(mask->control[band]._mcs[i]) - 1;	\
+			rateidx = ffs(mask->control[band]._mcs[i]) - 1;	/*TODO: ffs must be implemented on Windows*/ \
 			if (mode == MT_PHY_TYPE_HT)			\
 				rateidx += 8 * i;			\
 			else						\
@@ -304,6 +325,7 @@ u16 mt76_connac2_mac_tx_rate_val(struct mt76_phy *mphy,
 		goto legacy;
 
 	if (is_mt7921(mphy->dev)) {
+		// TODO: ffs must be implemented on Windows
 		rateidx = ffs(vif->bss_conf.basic_rates) - 1;
 		goto legacy;
 	}
@@ -317,6 +339,7 @@ u16 mt76_connac2_mac_tx_rate_val(struct mt76_phy *mphy,
 		__bitrate_mask_check(vht_mcs, VHT);
 		__bitrate_mask_check(ht_mcs, HT);
 
+		// TODO: hweight32 must be implemented on Windows
 		if (hweight32(mask->control[band].legacy) == 1) {
 			rateidx = ffs(mask->control[band].legacy) - 1;
 			goto legacy;
@@ -360,6 +383,7 @@ mt76_connac2_mac_write_txwi_8023(__le32 *txwi, struct sk_buff *skb,
 	val = FIELD_PREP(MT_TXD1_HDR_FORMAT, MT_HDR_FORMAT_802_3) |
 	      FIELD_PREP(MT_TXD1_TID, tid);
 
+	// TODO: get_unaligned_be16 must be implemented on Windows
 	ethertype = get_unaligned_be16(&skb->data[12]);
 	if (ethertype >= ETH_P_802_3_MIN)
 		val |= MT_TXD1_ETH_802_3;
@@ -388,19 +412,24 @@ mt76_connac2_mac_write_txwi_80211(struct mt76_dev *dev, __le32 *txwi,
 	struct ieee80211_hdr *hdr = (struct ieee80211_hdr *)skb->data;
 	struct ieee80211_mgmt *mgmt = (struct ieee80211_mgmt *)skb->data;
 	struct ieee80211_tx_info *info = IEEE80211_SKB_CB(skb);
+	// TODO: is_multicast_ether_addr must be implemented on Windows
 	bool multicast = is_multicast_ether_addr(hdr->addr1);
 	u8 tid = skb->priority & IEEE80211_QOS_CTL_TID_MASK;
 	__le16 fc = hdr->frame_control;
 	u8 fc_type, fc_stype;
 	u32 val;
 
+	// TODO: ieee80211_is_action must be implemented on Windows
 	if (ieee80211_is_action(fc) &&
 	    mgmt->u.action.category == WLAN_CATEGORY_BACK &&
 	    mgmt->u.action.u.addba_req.action_code == WLAN_ACTION_ADDBA_REQ) {
+		// TODO: le16_to_cpu must be implemented on Windows
 		u16 capab = le16_to_cpu(mgmt->u.action.u.addba_req.capab);
 
+		// TODO: cpu_to_le32 must be implemented on Windows
 		txwi[5] |= cpu_to_le32(MT_TXD5_ADD_BA);
 		tid = (capab >> 2) & IEEE80211_QOS_CTL_TID_MASK;
+		// TODO: ieee80211_is_back_req must be implemented on Windows
 	} else if (ieee80211_is_back_req(hdr->frame_control)) {
 		struct ieee80211_bar *bar = (struct ieee80211_bar *)hdr;
 		u16 control = le16_to_cpu(bar->control);
@@ -410,6 +439,7 @@ mt76_connac2_mac_write_txwi_80211(struct mt76_dev *dev, __le32 *txwi,
 
 	val = FIELD_PREP(MT_TXD1_HDR_FORMAT, MT_HDR_FORMAT_802_11) |
 	      FIELD_PREP(MT_TXD1_HDR_INFO,
+			  // TODO: ieee80211_get_hdrlen_from_skb must be implemented on Windows
 			 ieee80211_get_hdrlen_from_skb(skb) / 2) |
 	      FIELD_PREP(MT_TXD1_TID, tid);
 
@@ -422,18 +452,21 @@ mt76_connac2_mac_write_txwi_80211(struct mt76_dev *dev, __le32 *txwi,
 	      FIELD_PREP(MT_TXD2_SUB_TYPE, fc_stype) |
 	      FIELD_PREP(MT_TXD2_MULTICAST, multicast);
 
+	// TODO: ieee80211_is_robust_mgmt_frame must be implemented on Windows
 	if (key && multicast && ieee80211_is_robust_mgmt_frame(skb) &&
 	    key->cipher == WLAN_CIPHER_SUITE_AES_CMAC) {
 		val |= MT_TXD2_BIP;
 		txwi[3] &= ~cpu_to_le32(MT_TXD3_PROTECT_FRAME);
 	}
 
+	// TODO: ieee80211_is_data must be implemented on Windows
 	if (!ieee80211_is_data(fc) || multicast ||
 	    info->flags & IEEE80211_TX_CTL_USE_MINRATE)
 		val |= MT_TXD2_FIX_RATE;
 
 	txwi[2] |= cpu_to_le32(val);
 
+	// TODO: ieee80211_is_beacon must be implemented on Windows
 	if (ieee80211_is_beacon(fc)) {
 		txwi[3] &= ~cpu_to_le32(MT_TXD3_SW_POWER_MGMT);
 		txwi[3] |= cpu_to_le32(MT_TXD3_REM_TX_COUNT);
@@ -442,14 +475,17 @@ mt76_connac2_mac_write_txwi_80211(struct mt76_dev *dev, __le32 *txwi,
 	if (info->flags & IEEE80211_TX_CTL_INJECTED) {
 		u16 seqno = le16_to_cpu(hdr->seq_ctrl);
 
+		// TODO: ieee80211_is_back_req must be implemented on Windows
 		if (ieee80211_is_back_req(hdr->frame_control)) {
 			struct ieee80211_bar *bar;
 
 			bar = (struct ieee80211_bar *)skb->data;
+			// TODO: le16_to_cpu must be implemented on Windows
 			seqno = le16_to_cpu(bar->start_seq_num);
 		}
 
 		val = MT_TXD3_SN_VALID |
+			// TODO: IEEE80211_SEQ_TO_SN must be implemented on Windows
 		      FIELD_PREP(MT_TXD3_SEQ, IEEE80211_SEQ_TO_SN(seqno));
 		txwi[3] |= cpu_to_le32(val);
 		txwi[7] &= ~cpu_to_le32(MT_TXD7_HW_AMSDU);
@@ -507,9 +543,11 @@ void mt76_connac2_mac_write_txwi(struct mt76_dev *dev, __le32 *txwi,
 	} else {
 		p_fmt = mt76_is_mmio(dev) ? MT_TX_TYPE_CT : MT_TX_TYPE_SF;
 		q_idx = wmm_idx * MT76_CONNAC_MAX_WMM_SETS +
+			// TODO: skb_get_queue_mapping must be implemented on Windows
 			mt76_connac_lmac_mapping(skb_get_queue_mapping(skb));
 
 		/* mt7915 WA only counts WED path */
+			// TODO: mtk_wed_device_active must be implemented on Windows
 		if (is_mt7915(dev) && mtk_wed_device_active(&dev->mmio.wed))
 			wcid->stats.tx_packets++;
 	}
@@ -559,7 +597,9 @@ void mt76_connac2_mac_write_txwi(struct mt76_dev *dev, __le32 *txwi,
 	if (txwi[2] & cpu_to_le32(MT_TXD2_FIX_RATE)) {
 		/* Fixed rata is available just for 802.11 txd */
 		struct ieee80211_hdr *hdr = (struct ieee80211_hdr *)skb->data;
+		// TODO: ieee80211_is_data must be implemented on Windows
 		bool multicast = ieee80211_is_data(hdr->frame_control) &&
+			// TODO: is_multicast_ether_addr must be implemented on Windows
 				 is_multicast_ether_addr(hdr->addr1);
 		u16 rate = mt76_connac2_mac_tx_rate_val(mphy, vif, beacon,
 							multicast);
@@ -596,6 +636,7 @@ bool mt76_connac2_mac_fill_txs(struct mt76_dev *dev, struct mt76_wcid *wcid,
 	txs = le32_to_cpu(txs_data[0]);
 
 	/* PPDU based reporting */
+	// TODO: mtk_wed_device_active must be implemented on Windows
 	if (mtk_wed_device_active(&dev->mmio.wed) &&
 	    FIELD_GET(MT_TXS0_TXS_FORMAT, txs) > 1) {
 		stats->tx_bytes +=
@@ -614,6 +655,7 @@ bool mt76_connac2_mac_fill_txs(struct mt76_dev *dev, struct mt76_wcid *wcid,
 					   drv_priv);
 			tid = FIELD_GET(MT_TXS0_TID, txs);
 
+			// TODO: ieee80211_refresh_tx_agg_session_timer must be implemented on Windows
 			ieee80211_refresh_tx_agg_session_timer(sta, tid);
 		}
 	}
@@ -719,6 +761,7 @@ bool mt76_connac2_mac_add_txs_skb(struct mt76_dev *dev, struct mt76_wcid *wcid,
 	if (skb) {
 		struct ieee80211_tx_info *info = IEEE80211_SKB_CB(skb);
 
+		// TODO: le32_to_cpu must be implemented on Windows
 		if (!(le32_to_cpu(txs_data[0]) & MT_TXS0_ACK_ERROR_MASK))
 			info->flags |= IEEE80211_TX_STAT_ACK;
 
@@ -744,6 +787,7 @@ mt76_connac2_mac_decode_he_radiotap_ru(struct mt76_rx_status *status,
 	u32 ru_h, ru_l;
 	u8 ru, offs = 0;
 
+	// TODO: le32_get_bits must be implemented on Windows
 	ru_l = le32_get_bits(rxv[0], MT_PRXV_HE_RU_ALLOC_L);
 	ru_h = le32_get_bits(rxv[1], MT_PRXV_HE_RU_ALLOC_H);
 	ru = (u8)(ru_l | ru_h << 4);
@@ -781,6 +825,7 @@ mt76_connac2_mac_decode_he_radiotap_ru(struct mt76_rx_status *status,
 
 	he->data1 |= HE_BITS(DATA1_BW_RU_ALLOC_KNOWN);
 	he->data2 |= HE_BITS(DATA2_RU_OFFSET_KNOWN) |
+		// TODO: le16_encode_bits must be implemented on Windows
 		     le16_encode_bits(offs,
 				      IEEE80211_RADIOTAP_HE_DATA2_RU_OFFSET);
 }
@@ -806,9 +851,11 @@ mt76_connac2_mac_decode_he_mu_radiotap(struct mt76_dev *dev, struct sk_buff *skb
 
 	status->flag |= RX_FLAG_RADIOTAP_HE_MU;
 
+	// TODO: skb_push must be implemented on Windows
 	he_mu = skb_push(skb, sizeof(mu_known));
 	memcpy(he_mu, &mu_known, sizeof(mu_known));
 
+	// TODO: le16_encode_bits must be implemented on Windows
 #define MU_PREP(f, v)	le16_encode_bits(v, IEEE80211_RADIOTAP_HE_MU_##f)
 
 	he_mu->flags1 |= MU_PREP(FLAGS1_SIG_B_MCS, status->rate_idx);
@@ -859,6 +906,7 @@ void mt76_connac2_mac_decode_he_radiotap(struct mt76_dev *dev,
 
 	status->flag |= RX_FLAG_RADIOTAP_HE;
 
+	// TODO: skb_push must be implemented on Windows
 	he = skb_push(skb, sizeof(known));
 	memcpy(he, &known, sizeof(known));
 
@@ -866,6 +914,7 @@ void mt76_connac2_mac_decode_he_radiotap(struct mt76_dev *dev,
 		    HE_PREP(DATA3_LDPC_XSYMSEG, LDPC_EXT_SYM, rxv[2]);
 	he->data4 = HE_PREP(DATA4_SU_MU_SPTL_REUSE, SR_MASK, rxv[11]);
 	he->data5 = HE_PREP(DATA5_PE_DISAMBIG, PE_DISAMBIG, rxv[2]) |
+			// TODO: le16_encode_bits must be implemented on Windows
 		    le16_encode_bits(ltf_size,
 				     IEEE80211_RADIOTAP_HE_DATA5_LTF_SIZE);
 	if (le32_to_cpu(rxv[0]) & MT_PRXV_TXBF)
@@ -930,10 +979,12 @@ int mt76_connac2_reverse_frag0_hdr_trans(struct ieee80211_vif *vif,
 	struct ieee80211_hdr hdr;
 	u16 frame_control;
 
+	// TODO: le32_get_bits must be implemented on Windows
 	if (le32_get_bits(rxd[3], MT_RXD3_NORMAL_ADDR_TYPE) !=
 	    MT_RXD3_NORMAL_U2M)
 		return -EINVAL;
 
+	// TODO: le32_to_cpu must be implemented on Windows
 	if (!(le32_to_cpu(rxd[1]) & MT_RXD1_NORMAL_GROUP_4))
 		return -EINVAL;
 
@@ -945,6 +996,7 @@ int mt76_connac2_reverse_frag0_hdr_trans(struct ieee80211_vif *vif,
 	hdr.seq_ctrl = cpu_to_le16(le32_get_bits(rxd[8], MT_RXD8_SEQ_CTRL));
 	hdr.duration_id = 0;
 
+	// TODO: ether_addr_copy must be implemented on Windows
 	ether_addr_copy(hdr.addr1, vif->addr);
 	ether_addr_copy(hdr.addr2, sta->addr);
 	switch (frame_control & (IEEE80211_FCTL_TODS |
@@ -966,6 +1018,7 @@ int mt76_connac2_reverse_frag0_hdr_trans(struct ieee80211_vif *vif,
 		return -EINVAL;
 	}
 
+	// TODO: skb_pull must be implemented on Windows
 	skb_pull(skb, hdr_offset + sizeof(struct ethhdr) - 2);
 	if (eth_hdr->h_proto == cpu_to_be16(ETH_P_AARP) ||
 	    eth_hdr->h_proto == cpu_to_be16(ETH_P_IPX))
@@ -1122,6 +1175,7 @@ void mt76_connac2_tx_check_aggr(struct ieee80211_sta *sta, __le32 *txwi)
 
 	wcid = (struct mt76_wcid *)sta->drv_priv;
 	if (!test_and_set_bit(tid, &wcid->ampdu_state))
+		// TODO: ieee80211_start_tx_ba_session must be implemented on Windows
 		ieee80211_start_tx_ba_session(sta, tid, 0);
 }
 EXPORT_SYMBOL_GPL(mt76_connac2_tx_check_aggr);
@@ -1144,6 +1198,7 @@ void mt76_connac2_txwi_free(struct mt76_dev *dev, struct mt76_txwi_cache *t,
 		wcid_idx = wcid->idx;
 	} else {
 		wcid_idx = le32_get_bits(txwi[1], MT_TXD1_WLAN_IDX);
+		// TODO: rcu_dereference must be implemented on Windows
 		wcid = rcu_dereference(dev->wcid[wcid_idx]);
 
 		if (wcid && wcid->sta) {
@@ -1151,6 +1206,7 @@ void mt76_connac2_txwi_free(struct mt76_dev *dev, struct mt76_txwi_cache *t,
 					   drv_priv);
 			spin_lock_bh(&dev->sta_poll_lock);
 			if (list_empty(&wcid->poll_list))
+				// TODO: list_add_tail must be implemented on Windows
 				list_add_tail(&wcid->poll_list,
 					      &dev->sta_poll_list);
 			spin_unlock_bh(&dev->sta_poll_lock);
@@ -1173,6 +1229,7 @@ void mt76_connac2_tx_token_put(struct mt76_dev *dev)
 	int id;
 
 	spin_lock_bh(&dev->token_lock);
+	// TODO: idr_for_each_entry must be implemented on Windows
 	idr_for_each_entry(&dev->token, txwi, id) {
 		mt76_connac2_txwi_free(dev, txwi, NULL, NULL);
 		dev->token_count--;

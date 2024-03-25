@@ -3,6 +3,9 @@
 
 #include "mt792x.h"
 
+// this file can be deleted because it is designed to work with the host file system
+// to remove
+
 static void
 mt792x_ampdu_stat_read_phy(struct mt792x_phy *phy,
 			   struct seq_file *file)
