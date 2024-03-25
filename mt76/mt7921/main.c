@@ -196,6 +196,7 @@ void mt7921_set_stream_he_caps(struct mt792x_phy *phy)
 		n = mt7921_init_he_caps(phy, NL80211_BAND_2GHZ, data);
 
 		band = &phy->mt76->sband_2g.sband;
+		// TODO: _ieee80211_set_sband_iftype_data must be implemented on Windows
 		_ieee80211_set_sband_iftype_data(band, data, n);
 	}
 
@@ -204,6 +205,7 @@ void mt7921_set_stream_he_caps(struct mt792x_phy *phy)
 		n = mt7921_init_he_caps(phy, NL80211_BAND_5GHZ, data);
 
 		band = &phy->mt76->sband_5g.sband;
+		// TODO: _ieee80211_set_sband_iftype_data must be implemented on Windows
 		_ieee80211_set_sband_iftype_data(band, data, n);
 
 		if (phy->mt76->cap.has_6ghz) {
@@ -211,6 +213,7 @@ void mt7921_set_stream_he_caps(struct mt792x_phy *phy)
 			n = mt7921_init_he_caps(phy, NL80211_BAND_6GHZ, data);
 
 			band = &phy->mt76->sband_6g.sband;
+			// TODO: _ieee80211_set_sband_iftype_data must be implemented on Windows
 			_ieee80211_set_sband_iftype_data(band, data, n);
 		}
 	}
@@ -240,6 +243,7 @@ int __mt7921_start(struct mt792x_phy *phy)
 	mt792x_mac_reset_counters(phy);
 	set_bit(MT76_STATE_RUNNING, &mphy->state);
 
+	//TODO: ieee80211_queue_delayed_work must be implemented on Windows
 	ieee80211_queue_delayed_work(mphy->hw, &mphy->mac_work,
 				     MT792x_WATCHDOG_TIME);
 
@@ -303,6 +307,7 @@ mt7921_add_interface(struct ieee80211_hw *hw, struct ieee80211_vif *vif)
 
 	ewma_rssi_init(&mvif->rssi);
 
+	// TODO: rcu_assign_pointer must be implemented on Windows
 	rcu_assign_pointer(dev->mt76.wcid[idx], &mvif->sta.wcid);
 	if (vif->txq) {
 		mtxq = (struct mt76_txq *)vif->txq->drv_priv;
@@ -336,18 +341,21 @@ void mt7921_roc_work(struct work_struct *work)
 		return;
 
 	mt792x_mutex_acquire(phy->dev);
+	// TODO: ieee80211_iterate_active_interfaces must be implemented on Windows
 	ieee80211_iterate_active_interfaces(phy->mt76->hw,
 					    IEEE80211_IFACE_ITER_RESUME_ALL,
 					    mt7921_roc_iter, phy);
 	mt792x_mutex_release(phy->dev);
+	// TODO: ieee80211_remain_on_channel_expired must be implemented on Windows
 	ieee80211_remain_on_channel_expired(phy->mt76->hw);
 }
 
 static int mt7921_abort_roc(struct mt792x_phy *phy, struct mt792x_vif *vif)
 {
 	int err = 0;
-
+	// TODO: del_timer_sync must be implemented on Windows	
 	del_timer_sync(&phy->roc_timer);
+	// TODO: cancel_work_sync must be implemented on Windows	
 	cancel_work_sync(&phy->roc_work);
 
 	mt792x_mutex_acquire(phy->dev);
@@ -418,7 +426,7 @@ static int mt7921_set_channel(struct mt792x_phy *phy)
 {
 	struct mt792x_dev *dev = phy->dev;
 	int ret;
-
+	// TODO: cancel_delayed_work_sync must be implemented on Windows	
 	cancel_delayed_work_sync(&phy->mt76->mac_work);
 
 	mt792x_mutex_acquire(dev);
@@ -440,6 +448,7 @@ out:
 	mt792x_mutex_release(dev);
 
 	mt76_worker_schedule(&dev->mt76.tx_worker);
+	// TODO: ieee80211_queue_delayed_work must be implemented on Windows	
 	ieee80211_queue_delayed_work(phy->mt76->hw, &phy->mt76->mac_work,
 				     MT792x_WATCHDOG_TIME);
 
@@ -533,6 +542,7 @@ mt7921_pm_interface_iter(void *priv, u8 *mac, struct ieee80211_vif *vif)
 
 	if (pm_enable) {
 		vif->driver_flags |= IEEE80211_VIF_BEACON_FILTER;
+		// TODO: ieee80211_hw_set must be implemented on Windows	
 		ieee80211_hw_set(hw, CONNECTION_MONITOR);
 	} else {
 		vif->driver_flags &= ~IEEE80211_VIF_BEACON_FILTER;
@@ -565,6 +575,7 @@ void mt7921_set_runtime_pm(struct mt792x_dev *dev)
 	bool monitor = !!(hw->conf.flags & IEEE80211_CONF_MONITOR);
 
 	pm->enable = pm->enable_user && !monitor;
+	// TODO: ieee80211_iterate_active_interfaces must be implemented on Windows	
 	ieee80211_iterate_active_interfaces(hw,
 					    IEEE80211_IFACE_ITER_RESUME_ALL,
 					    mt7921_pm_interface_iter, dev);
@@ -579,10 +590,12 @@ static int mt7921_config(struct ieee80211_hw *hw, u32 changed)
 	int ret = 0;
 
 	if (changed & IEEE80211_CONF_CHANGE_CHANNEL) {
+		// TODO: ieee80211_stop_queues must be implemented on Windows	
 		ieee80211_stop_queues(hw);
 		ret = mt7921_set_channel(phy);
 		if (ret)
 			return ret;
+		// TODO: ieee80211_wake_queues must be implemented on Windows	
 		ieee80211_wake_queues(hw);
 	}
 
@@ -595,6 +608,7 @@ static int mt7921_config(struct ieee80211_hw *hw, u32 changed)
 	}
 
 	if (changed & IEEE80211_CONF_CHANGE_MONITOR) {
+		// TODO: ieee80211_iterate_active_interfaces must be implemented on Windows	
 		ieee80211_iterate_active_interfaces(hw,
 						    IEEE80211_IFACE_ITER_RESUME_ALL,
 						    mt7921_sniffer_interface_iter, dev);
@@ -709,7 +723,7 @@ mt7921_regd_set_6ghz_power_type(struct ieee80211_vif *vif, bool is_add)
 	struct mt792x_phy *phy = mvif->phy;
 	struct mt792x_dev *dev = phy->dev;
 	u32 valid_vif_num = 0;
-
+	// TODO: ieee80211_iterate_active_interfaces must be implemented on Windows	
 	ieee80211_iterate_active_interfaces(mt76_hw(dev),
 					    IEEE80211_IFACE_ITER_RESUME_ALL,
 					    mt7921_calc_vif_num, &valid_vif_num);
@@ -799,7 +813,7 @@ void mt7921_mac_sta_assoc(struct mt76_dev *mdev, struct ieee80211_vif *vif,
 	if (vif->type == NL80211_IFTYPE_STATION && !sta->tdls)
 		mt76_connac_mcu_uni_add_bss(&dev->mphy, vif, &mvif->sta.wcid,
 					    true, mvif->mt76.ctx);
-
+	// TODO: ewma_avg_signal_init must be implemented on Windows	
 	ewma_avg_signal_init(&msta->avg_ack_signal);
 
 	mt7921_mac_wtbl_update(dev, msta->wcid.idx,
@@ -907,6 +921,7 @@ mt7921_ampdu_action(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
 		mtxq->aggr = false;
 		clear_bit(tid, &msta->wcid.ampdu_state);
 		mt7921_mcu_uni_tx_ba(dev, params, false);
+		// TODO: ieee80211_stop_tx_ba_cb_irqsafe must be implemented on Windows	
 		ieee80211_stop_tx_ba_cb_irqsafe(vif, sta->addr, tid);
 		break;
 	}
@@ -952,13 +967,14 @@ void mt7921_scan_work(struct work_struct *work)
 
 		rxd = (struct mt76_connac2_mcu_rxd *)skb->data;
 		if (rxd->eid == MCU_EVENT_SCHED_SCAN_DONE) {
+			// TODO: ieee80211_sched_scan_results must be implemented on Windows	
 			ieee80211_sched_scan_results(phy->mt76->hw);
 		} else if (test_and_clear_bit(MT76_HW_SCANNING,
 					      &phy->mt76->state)) {
 			struct cfg80211_scan_info info = {
 				.aborted = false,
 			};
-
+			// TODO: ieee80211_scan_completed must be implemented on Windows	
 			ieee80211_scan_completed(phy->mt76->hw, &info);
 		}
 		dev_kfree_skb(skb);
@@ -1069,6 +1085,7 @@ static int mt7921_suspend(struct ieee80211_hw *hw,
 	mt792x_mutex_acquire(dev);
 
 	clear_bit(MT76_STATE_RUNNING, &phy->mt76->state);
+	// TODO: ieee80211_iterate_active_interfaces must be implemented on Windows	
 	ieee80211_iterate_active_interfaces(hw,
 					    IEEE80211_IFACE_ITER_RESUME_ALL,
 					    mt7921_mcu_set_suspend_iter,
@@ -1087,11 +1104,13 @@ static int mt7921_resume(struct ieee80211_hw *hw)
 	mt792x_mutex_acquire(dev);
 
 	set_bit(MT76_STATE_RUNNING, &phy->mt76->state);
+	// TODO: ieee80211_iterate_active_interfaces must be implemented on Windows	
 	ieee80211_iterate_active_interfaces(hw,
 					    IEEE80211_IFACE_ITER_RESUME_ALL,
 					    mt76_connac_mcu_set_suspend_iter,
 					    &dev->mphy);
 
+	// TODO: ieee80211_queue_delayed_work must be implemented on Windows	
 	ieee80211_queue_delayed_work(hw, &phy->mt76->mac_work,
 				     MT792x_WATCHDOG_TIME);
 
@@ -1188,7 +1207,7 @@ static void mt7921_ipv6_addr_change(struct ieee80211_hw *hw,
 		skb_put_data(skb, &ns_addrs[i].in6_u, sizeof(struct in6_addr));
 
 	skb_queue_tail(&dev->ipv6_ns_list, skb);
-
+	// TODO: ieee80211_queue_work must be implemented on Windows	
 	ieee80211_queue_work(dev->mt76.hw, &dev->ipv6_ns_work);
 }
 #endif
@@ -1326,6 +1345,7 @@ mt7921_change_chanctx(struct ieee80211_hw *hw,
 	struct mt792x_phy *phy = mt792x_hw_phy(hw);
 
 	mt792x_mutex_acquire(phy->dev);
+	// TODO: ieee80211_iterate_active_interfaces must be implemented on Windows	
 	ieee80211_iterate_active_interfaces(phy->mt76->hw,
 					    IEEE80211_IFACE_ITER_ACTIVE,
 					    mt7921_ctx_iter, ctx);

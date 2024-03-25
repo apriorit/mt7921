@@ -63,15 +63,15 @@ static void
 mt7921_seq_puts_array(struct seq_file *file, const char *str,
 		      s8 *val, int len)
 {
-	int i;
+	//int i;
 
-	seq_printf(file, "%-16s:", str);
-	for (i = 0; i < len; i++)
-		if (val[i] == 127)
-			seq_printf(file, " %6s", "N.A");
-		else
-			seq_printf(file, " %6d", val[i]);
-	seq_puts(file, "\n");
+	//seq_printf(file, "%-16s:", str);
+	//for (i = 0; i < len; i++)
+		//if (val[i] == 127)
+			//seq_printf(file, " %6s", "N.A");
+		//else
+			//seq_printf(file, " %6d", val[i]);
+	//seq_puts(file, "\n");
 }
 
 #define mt7921_print_txpwr_entry(prefix, rate)				\
@@ -101,29 +101,29 @@ mt7921_txpwr(struct seq_file *s, void *data)
 	if (ret)
 		return ret;
 
-	seq_printf(s, "Tx power table (channel %d)\n", txpwr.ch);
-	seq_printf(s, "%-16s  %6s %6s %6s %6s\n",
-		   " ", "1m", "2m", "5m", "11m");
+	//seq_printf(s, "Tx power table (channel %d)\n", txpwr.ch);
+	//seq_printf(s, "%-16s  %6s %6s %6s %6s\n",
+	//	   " ", "1m", "2m", "5m", "11m");
 	mt7921_print_txpwr_entry(CCK, cck);
-
-	seq_printf(s, "%-16s  %6s %6s %6s %6s %6s %6s %6s %6s\n",
-		   " ", "6m", "9m", "12m", "18m", "24m", "36m",
-		   "48m", "54m");
+	
+	//seq_printf(s, "%-16s  %6s %6s %6s %6s %6s %6s %6s %6s\n",
+	//	   " ", "6m", "9m", "12m", "18m", "24m", "36m",
+	//	   "48m", "54m");
 	mt7921_print_txpwr_entry(OFDM, ofdm);
-
-	seq_printf(s, "%-16s  %6s %6s %6s %6s %6s %6s %6s %6s\n",
-		   " ", "mcs0", "mcs1", "mcs2", "mcs3", "mcs4", "mcs5",
-		   "mcs6", "mcs7");
+	
+	//seq_printf(s, "%-16s  %6s %6s %6s %6s %6s %6s %6s %6s\n",
+	//	   " ", "mcs0", "mcs1", "mcs2", "mcs3", "mcs4", "mcs5",
+	//	   "mcs6", "mcs7");
 	mt7921_print_txpwr_entry(HT20, ht20);
-
-	seq_printf(s, "%-16s  %6s %6s %6s %6s %6s %6s %6s %6s %6s\n",
-		   " ", "mcs0", "mcs1", "mcs2", "mcs3", "mcs4", "mcs5",
-		   "mcs6", "mcs7", "mcs32");
+	
+	//seq_printf(s, "%-16s  %6s %6s %6s %6s %6s %6s %6s %6s %6s\n",
+	//	   " ", "mcs0", "mcs1", "mcs2", "mcs3", "mcs4", "mcs5",
+	//	   "mcs6", "mcs7", "mcs32");
 	mt7921_print_txpwr_entry(HT40, ht40);
-
-	seq_printf(s, "%-16s  %6s %6s %6s %6s %6s %6s %6s %6s %6s %6s %6s %6s\n",
-		   " ", "mcs0", "mcs1", "mcs2", "mcs3", "mcs4", "mcs5",
-		   "mcs6", "mcs7", "mcs8", "mcs9", "mcs10", "mcs11");
+	
+	//seq_printf(s, "%-16s  %6s %6s %6s %6s %6s %6s %6s %6s %6s %6s %6s %6s\n",
+	//	   " ", "mcs0", "mcs1", "mcs2", "mcs3", "mcs4", "mcs5",
+	//	   "mcs6", "mcs7", "mcs8", "mcs9", "mcs10", "mcs11");
 	mt7921_print_txpwr_entry(VHT20, vht20);
 	mt7921_print_txpwr_entry(VHT40, vht40);
 	mt7921_print_txpwr_entry(VHT80, vht80);
@@ -250,13 +250,13 @@ DEFINE_DEBUGFS_ATTRIBUTE(fops_reset, NULL, mt7921_chip_reset, "%lld\n");
 static int
 mt7921s_sched_quota_read(struct seq_file *s, void *data)
 {
-	struct mt792x_dev *dev = dev_get_drvdata(s->private);
-	struct mt76_sdio *sdio = &dev->mt76.sdio;
+	//struct mt792x_dev *dev = dev_get_drvdata(s->private);
+	//struct mt76_sdio *sdio = &dev->mt76.sdio;
 
-	seq_printf(s, "pse_data_quota\t%d\n", sdio->sched.pse_data_quota);
-	seq_printf(s, "ple_data_quota\t%d\n", sdio->sched.ple_data_quota);
-	seq_printf(s, "pse_mcu_quota\t%d\n", sdio->sched.pse_mcu_quota);
-	seq_printf(s, "sched_deficit\t%d\n", sdio->sched.deficit);
+	//seq_printf(s, "pse_data_quota\t%d\n", sdio->sched.pse_data_quota);
+	//seq_printf(s, "ple_data_quota\t%d\n", sdio->sched.ple_data_quota);
+	//seq_printf(s, "pse_mcu_quota\t%d\n", sdio->sched.pse_mcu_quota);
+	//seq_printf(s, "sched_deficit\t%d\n", sdio->sched.deficit);
 
 	return 0;
 }
@@ -270,26 +270,38 @@ int mt7921_init_debugfs(struct mt792x_dev *dev)
 		return -ENOMEM;
 
 	if (mt76_is_mmio(&dev->mt76))
+		// TODO: debugfs_create_devm_seqfile must be implemented for Windows
 		debugfs_create_devm_seqfile(dev->mt76.dev, "xmit-queues",
 					    dir, mt792x_queues_read);
 	else
+		// TODO: debugfs_create_devm_seqfile must be implemented for Windows
 		debugfs_create_devm_seqfile(dev->mt76.dev, "xmit-queues",
 					    dir, mt76_queues_read);
+	// TODO: debugfs_create_devm_seqfile must be implemented for Windows
 
 	debugfs_create_devm_seqfile(dev->mt76.dev, "acq", dir,
 				    mt792x_queues_acq);
+	// TODO: debugfs_create_devm_seqfile must be implemented for Windows
 	debugfs_create_devm_seqfile(dev->mt76.dev, "txpower_sku", dir,
 				    mt7921_txpwr);
+	// TODO: debugfs_create_file must be implemented for Windows
 	debugfs_create_file("tx_stats", 0400, dir, dev, &mt792x_tx_stats_fops);
+	// TODO: debugfs_create_file must be implemented for Windows
 	debugfs_create_file("fw_debug", 0600, dir, dev, &fops_fw_debug);
+	// TODO: debugfs_create_file must be implemented for Windows
 	debugfs_create_file("runtime-pm", 0600, dir, dev, &fops_pm);
+	// TODO: debugfs_create_file must be implemented for Windows
 	debugfs_create_file("idle-timeout", 0600, dir, dev,
 			    &fops_pm_idle_timeout);
+	// TODO: debugfs_create_file must be implemented for Windows
 	debugfs_create_file("chip_reset", 0600, dir, dev, &fops_reset);
+	// TODO: debugfs_create_devm_seqfile must be implemented for Windows
 	debugfs_create_devm_seqfile(dev->mt76.dev, "runtime_pm_stats", dir,
 				    mt792x_pm_stats);
+	// TODO: debugfs_create_file must be implemented for Windows
 	debugfs_create_file("deep-sleep", 0600, dir, dev, &fops_ds);
 	if (mt76_is_sdio(&dev->mt76))
+		// TODO: debugfs_create_devm_seqfile must be implemented for Windows
 		debugfs_create_devm_seqfile(dev->mt76.dev, "sched-quota", dir,
 					    mt7921s_sched_quota_read);
 	return 0;
