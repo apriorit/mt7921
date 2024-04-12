@@ -30,6 +30,12 @@ void mt76_connac_gen_ppe_thresh(u8 *he_ppet, int nss)
 }
 EXPORT_SYMBOL_GPL(mt76_connac_gen_ppe_thresh);
 
+static bool mt76_connac_pm_wake_condition_check(void* data)
+{
+	struct mt76_phy* phy = (struct mt76_phy*)data;
+	return !test_bit(MT76_STATE_PM, &phy->state);
+}
+
 int mt76_connac_pm_wake(struct mt76_phy *phy, struct mt76_connac_pm *pm)
 {
 	struct mt76_dev *dev = phy->dev;
@@ -45,8 +51,8 @@ int mt76_connac_pm_wake(struct mt76_phy *phy, struct mt76_connac_pm *pm)
 		return 0;
 
 	queue_work(dev->wq, &pm->wake_work);
-	if (!wait_event_timeout(pm->wait,
-				!test_bit(MT76_STATE_PM, &phy->state),
+	if (!wait_event_timeout(&pm->wait,
+				mt76_connac_pm_wake_condition_check, phy,
 				3 * HZ)) {
 		ieee80211_wake_queues(phy->hw);
 		return -ETIMEDOUT;

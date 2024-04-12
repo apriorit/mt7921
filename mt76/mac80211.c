@@ -822,6 +822,12 @@ void mt76_update_survey(struct mt76_phy *phy)
 }
 EXPORT_SYMBOL_GPL(mt76_update_survey);
 
+static bool mt76_set_channel_check_condition(void* data)
+{
+	struct mt76_phy* phy = (struct mt76_phy*)data;
+	return !mt76_has_tx_pending(phy);
+}
+
 void mt76_set_channel(struct mt76_phy *phy)
 {
 	struct mt76_dev *dev = phy->dev;
@@ -830,7 +836,7 @@ void mt76_set_channel(struct mt76_phy *phy)
 	bool offchannel = hw->conf.flags & IEEE80211_CONF_OFFCHANNEL;
 	int timeout = HZ / 5;
 
-	wait_event_timeout(dev->tx_wait, !mt76_has_tx_pending(phy), timeout);
+	wait_event_timeout(&dev->tx_wait, mt76_set_channel_check_condition, phy, timeout);
 	mt76_update_survey(phy);
 
 	if (phy->chandef.chan->center_freq != chandef->chan->center_freq ||

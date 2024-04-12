@@ -358,6 +358,12 @@ static int mt7921_abort_roc(struct mt792x_phy *phy, struct mt792x_vif *vif)
 	return err;
 }
 
+static bool mt7921_set_roc_condition_check(void* data)
+{
+	struct mt792x_phy* phy = (struct mt792x_phy*)data;
+	return phy->roc_grant;
+}
+
 static int mt7921_set_roc(struct mt792x_phy *phy,
 			  struct mt792x_vif *vif,
 			  struct ieee80211_channel *chan,
@@ -378,7 +384,7 @@ static int mt7921_set_roc(struct mt792x_phy *phy,
 		goto out;
 	}
 
-	if (!wait_event_timeout(phy->roc_wait, phy->roc_grant, HZ)) {
+	if (!wait_event_timeout(&phy->roc_wait, mt7921_set_roc_condition_check, phy, HZ)) {
 		mt7921_mcu_abort_roc(phy, vif, phy->roc_token_id);
 		clear_bit(MT76_STATE_ROC, &phy->mt76->state);
 		err = -ETIMEDOUT;
