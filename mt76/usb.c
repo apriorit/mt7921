@@ -816,6 +816,7 @@ static bool mt76u_stop_tx_condition_check(void* data)
 	struct mt76_dev* dev = (struct mt76_dev*)data;
 	return !mt76_has_tx_pending(&dev->phy);
 }
+
 void mt76u_stop_tx(struct mt76_dev *dev)
 {
 	int ret;
