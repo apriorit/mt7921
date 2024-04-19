@@ -93,7 +93,6 @@ int mt76_get_min_avg_rssi(struct mt76_dev *dev, bool ext_phy)
 
 			spin_lock(&dev->rx_lock);
 			if (wcid->inactive_count++ < 5)
-				// TODO: ewma_signal_read must be implemented on Windows
 				cur_rssi = -ewma_signal_read(&wcid->rssi);
 			else
 				cur_rssi = 0;
@@ -115,20 +114,15 @@ int __mt76_worker_fn(void *ptr)
 {
 	struct mt76_worker *w = ptr;
 
-	// TODO: kthread_should_stop must be implemented on Windows
 	while (!kthread_should_stop()) {
-		// TODO: set_current_state must be implemented on Windows
 		set_current_state(TASK_INTERRUPTIBLE);
 
-		// TODO: kthread_should_park must be implemented on Windows
 		if (kthread_should_park()) {
-			// TODO: kthread_parkme must be implemented on Windows
 			kthread_parkme();
 			continue;
 		}
 
 		if (!test_and_clear_bit(MT76_WORKER_SCHEDULED, &w->state)) {
-			// TODO: schedule must be implemented on Windows
 			schedule();
 			continue;
 		}
@@ -136,7 +130,6 @@ int __mt76_worker_fn(void *ptr)
 		set_bit(MT76_WORKER_RUNNING, &w->state);
 		set_current_state(TASK_RUNNING);
 		w->fn(w);
-		// TODO: cond_resched must be implemented on Windows
 		cond_resched();
 		clear_bit(MT76_WORKER_RUNNING, &w->state);
 	}

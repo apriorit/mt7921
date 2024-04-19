@@ -16,7 +16,6 @@ static int mt76_get_of_eeprom_data(struct mt76_dev *dev, void *eep, int len)
 	const void *data;
 	int size;
 
-	// TODO: of_get_property must be implemented on Windows
 	data = of_get_property(np, "mediatek,eeprom-data", &size);
 	if (!data)
 		return -ENOENT;
@@ -41,27 +40,22 @@ int mt76_get_of_data_from_mtd(struct mt76_dev *dev, void *eep, int offset, int l
 	int size;
 	int ret;
 
-	// TODO: of_get_property must be implemented on Windows
 	list = of_get_property(np, "mediatek,mtd-eeprom", &size);
 	if (!list)
 		return -ENOENT;
 
-	// TODO: be32_to_cpup must be implemented on Windows
 	phandle = be32_to_cpup(list++);
 	if (!phandle)
 		return -ENOENT;
 
-	// TODO: of_find_node_by_phandle must be implemented on Windows
 	np = of_find_node_by_phandle(phandle);
 	if (!np)
 		return -EINVAL;
 
-	// TODO: of_get_property must be implemented on Windows
 	part = of_get_property(np, "label", NULL);
 	if (!part)
 		part = np->name;
 
-	// TODO: get_mtd_device_nm must be implemented on Windows
 	mtd = get_mtd_device_nm(part);
 	if (IS_ERR(mtd)) {
 		ret =  PTR_ERR(mtd);
@@ -73,18 +67,14 @@ int mt76_get_of_data_from_mtd(struct mt76_dev *dev, void *eep, int offset, int l
 		goto out_put_node;
 	}
 
-	// TODO: be32_to_cpup must be implemented on Windows
 	offset += be32_to_cpup(list);
-	// TODO: mtd_read must be implemented on Windows
 	ret = mtd_read(mtd, offset, len, &retlen, eep);
-	// TODO: put_mtd_device must be implemented on Windows
 	put_mtd_device(mtd);
-	// TODO: mtd_is_bitflip must be implemented on Windows
 	if (mtd_is_bitflip(ret))
 		ret = 0;
 	if (ret) {
-		//dev_err(dev->dev, "reading EEPROM from mtd %s failed: %i\n",
-		//	part, ret); // to remove
+		dev_err(dev->dev, "reading EEPROM from mtd %s failed: %i\n",
+			part, ret);
 		goto out_put_node;
 	}
 
@@ -93,27 +83,22 @@ int mt76_get_of_data_from_mtd(struct mt76_dev *dev, void *eep, int offset, int l
 		goto out_put_node;
 	}
 
-	// TODO: of_property_read_bool must be implemented on Windows
 	if (of_property_read_bool(dev->dev->of_node, "big-endian")) {
 		u8 *data = (u8 *)eep;
 		int i;
 
 		/* convert eeprom data in Little Endian */
 		for (i = 0; i < round_down(len, 2); i += 2)
-			// TODO: put_unaligned_le16 must be implemented on Windows
-			// TODO: get_unaligned_be16 must be implemented on Windows
 			put_unaligned_le16(get_unaligned_be16(&data[i]),
 					   &data[i]);
 	}
 
 #ifdef CONFIG_NL80211_TESTMODE
-	// TODO: devm_kstrdup must be implemented on Windows
 	dev->test_mtd.name = devm_kstrdup(dev->dev, part, GFP_KERNEL);
 	dev->test_mtd.offset = offset;
 #endif
 
 out_put_node:
-	// TODO: of_node_put must be implemented on Windows
 	of_node_put(np);
 	return ret;
 #else
@@ -131,19 +116,14 @@ int mt76_get_of_data_from_nvmem(struct mt76_dev *dev, void *eep,
 	size_t retlen;
 	int ret = 0;
 
-	// TODO: of_nvmem_cell_get must be implemented on Windows
 	cell = of_nvmem_cell_get(np, cell_name);
 	if (IS_ERR(cell))
 		return PTR_ERR(cell);
 
-	// TODO: nvmem_cell_read must be implemented on Windows
 	data = nvmem_cell_read(cell, &retlen);
-	// TODO: nvmem_cell_put must be implemented on Windows
 	nvmem_cell_put(cell);
 
-	// TODO: IS_ERR must be implemented on Windows
 	if (IS_ERR(data))
-		// TODO: PTR_ERR must be implemented on Windows
 		return PTR_ERR(data);
 
 	if (retlen < len) {
@@ -154,7 +134,6 @@ int mt76_get_of_data_from_nvmem(struct mt76_dev *dev, void *eep,
 	memcpy(eep, data, len);
 
 exit:
-	// TODO: kfree must be implemented on Windows
 	kfree(data);
 
 	return ret;
@@ -186,16 +165,13 @@ mt76_eeprom_override(struct mt76_phy *phy)
 	struct mt76_dev *dev = phy->dev;
 	struct device_node *np = dev->dev->of_node;
 
-	// TODO: of_get_mac_address must be implemented on Windows
 	of_get_mac_address(np, phy->macaddr);
 
-	// TODO: is_valid_ether_addr must be implemented on Windows
 	if (!is_valid_ether_addr(phy->macaddr)) {
-		// TODO: eth_random_addr must be implemented on Windows
 		eth_random_addr(phy->macaddr);
-		//dev_info(dev->dev,
-		//	 "Invalid MAC address, using random address %pM\n",
-		//	 phy->macaddr); // to remove
+		dev_info(dev->dev,
+			 "Invalid MAC address, using random address %pM\n",
+			 phy->macaddr);
 	}
 }
 EXPORT_SYMBOL_GPL(mt76_eeprom_override);
@@ -207,9 +183,7 @@ static bool mt76_string_prop_find(struct property *prop, const char *str)
 	if (!prop || !str || !str[0])
 		return false;
 
-	// TODO: of_prop_next_string must be implemented on Windows
 	while ((cp = of_prop_next_string(prop, cp)) != NULL)
-		// TODO: strcasecmp must be implemented on Windows
 		if (!strcasecmp(cp, str))
 			return true;
 
@@ -232,14 +206,11 @@ mt76_find_power_limits_node(struct mt76_dev *dev)
 	if (dev->region < ARRAY_SIZE(region_names))
 		region_name = region_names[dev->region];
 
-	// TODO: of_get_child_by_name must be implemented on Windows
 	np = of_get_child_by_name(np, "power-limits");
 	if (!np)
 		return NULL;
 
-	// TODO: for_each_child_of_node must be implemented on Windows
 	for_each_child_of_node(np, cur) {
-		// TODO: of_find_property must be implemented on Windows
 		struct property *country = of_find_property(cur, "country", NULL);
 		struct property *regd = of_find_property(cur, "regdomain", NULL);
 
@@ -250,13 +221,11 @@ mt76_find_power_limits_node(struct mt76_dev *dev)
 
 		if (mt76_string_prop_find(country, dev->alpha2) ||
 		    mt76_string_prop_find(regd, region_name)) {
-			// TODO: of_node_put must be implemented on Windows
 			of_node_put(np);
 			return cur;
 		}
 	}
 
-	// TODO: of_node_put must be implemented on Windows
 	of_node_put(np);
 	return fallback;
 }
@@ -265,7 +234,6 @@ EXPORT_SYMBOL_GPL(mt76_find_power_limits_node);
 static const __be32 *
 mt76_get_of_array(struct device_node *np, char *name, size_t *len, int min)
 {
-	// TODO: of_find_property must be implemented on Windows
 	struct property *prop = of_find_property(np, name, NULL);
 
 	if (!prop || !prop->value || prop->length < min * 4)
@@ -283,15 +251,12 @@ mt76_find_channel_node(struct device_node *np, struct ieee80211_channel *chan)
 	const __be32 *val;
 	size_t len;
 
-	// TODO: for_each_child_of_node must be implemented on Windows
 	for_each_child_of_node(np, cur) {
-		// TODO: mt76_get_of_array must be implemented on Windows
 		val = mt76_get_of_array(cur, "channels", &len, 2);
 		if (!val)
 			continue;
 
 		while (len >= 2 * sizeof(*val)) {
-			// TODO: be32_to_cpu must be implemented on Windows
 			if (chan->hw_value >= be32_to_cpu(val[0]) &&
 			    chan->hw_value <= be32_to_cpu(val[1]))
 				return cur;
@@ -329,7 +294,6 @@ mt76_apply_array_limit(s8 *pwr, size_t pwr_len, const __be32 *data,
 		return;
 
 	for (i = 0; i < pwr_len; i++) {
-		// TODO: min_t must be implemented on Windows
 		pwr[i] = min_t(s8, target_power,
 			       be32_to_cpu(data[i]) + nss_delta);
 		*max_power = max(*max_power, pwr[i]);
@@ -409,7 +373,6 @@ s8 mt76_get_rate_power_limits(struct mt76_phy *phy,
 	}
 
 	snprintf(name, sizeof(name), "txpower-%cg", band);
-	// TODO: of_get_child_by_name must be implemented on Windows
 	np = of_get_child_by_name(np, name);
 	if (!np)
 		return target_power;
@@ -418,7 +381,6 @@ s8 mt76_get_rate_power_limits(struct mt76_phy *phy,
 	if (!np)
 		return target_power;
 
-	// TODO: hweight16 must be implemented on Windows
 	txs_delta = mt76_get_txs_delta(np, hweight16(phy->chainmask));
 
 	val = mt76_get_of_array(np, "rates-cck", &len, ARRAY_SIZE(dest->cck));
@@ -448,7 +410,6 @@ int
 mt76_eeprom_init(struct mt76_dev *dev, int len)
 {
 	dev->eeprom.size = len;
-	// TODO: devm_kzalloc must be implemented on Windows
 	dev->eeprom.data = devm_kzalloc(dev->dev, len, GFP_KERNEL);
 	if (!dev->eeprom.data)
 		return -ENOMEM;

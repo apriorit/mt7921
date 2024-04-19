@@ -51,7 +51,6 @@ static const struct ieee80211_iface_combination if_comb_chanctx[] = {
 	}
 };
 
-// to remove (data transmission)
 void mt792x_tx(struct ieee80211_hw *hw, struct ieee80211_tx_control *control,
 	       struct sk_buff *skb)
 {
@@ -97,11 +96,9 @@ void mt792x_stop(struct ieee80211_hw *hw)
 	struct mt792x_dev *dev = mt792x_hw_dev(hw);
 	struct mt792x_phy *phy = mt792x_hw_phy(hw);
 
-	// TODO: cancel_delayed_work_sync must be implemented on Windows
 	cancel_delayed_work_sync(&phy->mt76->mac_work);
 
 	cancel_delayed_work_sync(&dev->pm.ps_work);
-	// TODO: cancel_work_sync must be implemented on Windows
 	cancel_work_sync(&dev->pm.wake_work);
 	cancel_work_sync(&dev->reset_work);
 	mt76_connac_free_pending_tx_skbs(&dev->pm, NULL);
@@ -129,7 +126,6 @@ void mt792x_remove_interface(struct ieee80211_hw *hw,
 	mt76_connac_free_pending_tx_skbs(&dev->pm, &msta->wcid);
 	mt76_connac_mcu_uni_add_dev(&dev->mphy, vif, &mvif->sta.wcid, false);
 
-	// TODO: rcu_assign_pointer must be implemented on Windows
 	rcu_assign_pointer(dev->mt76.wcid[idx], NULL);
 
 	dev->mt76.vif_mask &= ~BIT_ULL(mvif->mt76.idx);
@@ -227,7 +223,6 @@ void mt792x_set_tsf(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
 }
 EXPORT_SYMBOL_GPL(mt792x_set_tsf);
 
-// to remove (data transmission)
 void mt792x_tx_worker(struct mt76_worker *w)
 {
 	struct mt792x_dev *dev = container_of(w, struct mt792x_dev,
@@ -247,7 +242,6 @@ void mt792x_roc_timer(struct timer_list *timer)
 {
 	struct mt792x_phy *phy = from_timer(phy, timer, roc_timer);
 
-	// TODO: ieee80211_queue_work must be implemented on Windows
 	ieee80211_queue_work(phy->mt76->hw, &phy->roc_work);
 }
 EXPORT_SYMBOL_GPL(mt792x_roc_timer);
@@ -257,7 +251,6 @@ void mt792x_flush(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
 {
 	struct mt792x_dev *dev = mt792x_hw_dev(hw);
 
-	// TODO: wait_event_timeout must be implemented on Windows
 	wait_event_timeout(dev->mt76.tx_wait,
 			   !mt76_has_tx_pending(&dev->mphy), HZ / 2);
 }
@@ -298,7 +291,6 @@ void mt792x_set_wakeup(struct ieee80211_hw *hw, bool enabled)
 	struct mt792x_dev *dev = mt792x_hw_dev(hw);
 	struct mt76_dev *mdev = &dev->mt76;
 
-	// TODO: device_set_wakeup_enable must be implemented on Windows
 	device_set_wakeup_enable(mdev->dev, enabled);
 }
 EXPORT_SYMBOL_GPL(mt792x_set_wakeup);
@@ -391,7 +383,6 @@ void mt792x_get_et_strings(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
 	memcpy(data, mt792x_gstrings_stats, sizeof(mt792x_gstrings_stats));
 
 	data += sizeof(mt792x_gstrings_stats);
-	// TODO: page_pool_ethtool_stats_get_strings must be implemented on Windows
 	page_pool_ethtool_stats_get_strings(data);
 }
 EXPORT_SYMBOL_GPL(mt792x_get_et_strings);
@@ -403,7 +394,6 @@ int mt792x_get_et_sset_count(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
 		return 0;
 
 	return ARRAY_SIZE(mt792x_gstrings_stats) +
-		// TODO: page_pool_ethtool_stats_get_count must be implemented on Windows
 	       page_pool_ethtool_stats_get_count();
 }
 EXPORT_SYMBOL_GPL(mt792x_get_et_sset_count);
@@ -436,7 +426,6 @@ void mt792x_get_et_stats(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
 
 	mt792x_mutex_acquire(dev);
 
-	// TODO: mt792x_mac_update_mib_stats must be implemented on Windows
 	mt792x_mac_update_mib_stats(phy);
 
 	data[ei++] = mib->tx_ampdu_cnt;
@@ -473,7 +462,6 @@ void mt792x_get_et_stats(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
 
 	/* Add values for all stations owned by this vif */
 	wi.initial_stat_idx = ei;
-	// TODO: ieee80211_iterate_stations_atomic must be implemented on Windows
 	ieee80211_iterate_stations_atomic(hw, mt792x_ethtool_worker, &wi);
 
 	mt792x_mutex_release(dev);
@@ -484,12 +472,11 @@ void mt792x_get_et_stats(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
 	ei += wi.worker_stat_count;
 
 	mt76_ethtool_page_pool_stats(&dev->mt76, &data[ei], &ei);
-	// TODO: page_pool_ethtool_stats_get_count must be implemented on Windows
 	stats_size += page_pool_ethtool_stats_get_count();
 
 	if (ei != stats_size)
-		//dev_err(dev->mt76.dev, "ei: %d  SSTATS_LEN: %d", ei,
-		//	stats_size); // to remove (log)
+		dev_err(dev->mt76.dev, "ei: %d  SSTATS_LEN: %d", ei,
+			stats_size);
 }
 EXPORT_SYMBOL_GPL(mt792x_get_et_stats);
 
@@ -598,7 +585,6 @@ int mt792x_init_wiphy(struct ieee80211_hw *hw)
 
 	wiphy->features |= NL80211_FEATURE_SCHED_SCAN_RANDOM_MAC_ADDR |
 			   NL80211_FEATURE_SCAN_RANDOM_MAC_ADDR;
-	// TODO: wiphy_ext_feature_set must be implemented on Windows
 	wiphy_ext_feature_set(wiphy, NL80211_EXT_FEATURE_SET_SCAN_DWELL);
 	wiphy_ext_feature_set(wiphy, NL80211_EXT_FEATURE_BEACON_RATE_LEGACY);
 	wiphy_ext_feature_set(wiphy, NL80211_EXT_FEATURE_BEACON_RATE_HT);
@@ -607,7 +593,6 @@ int mt792x_init_wiphy(struct ieee80211_hw *hw)
 	wiphy_ext_feature_set(wiphy, NL80211_EXT_FEATURE_ACK_SIGNAL_SUPPORT);
 	wiphy_ext_feature_set(wiphy, NL80211_EXT_FEATURE_CAN_REPLACE_PTK0);
 
-	// TODO: ieee80211_hw_set must be implemented on Windows
 	ieee80211_hw_set(hw, SINGLE_SCAN_ON_ALL_BANDS);
 	ieee80211_hw_set(hw, HAS_RATE_CONTROL);
 	ieee80211_hw_set(hw, SUPPORTS_TX_ENCAP_OFFLOAD);
@@ -637,13 +622,12 @@ mt792x_get_offload_capability(struct device *dev, const char *fw_wm)
 	const u8 *data, *end;
 	u8 offload_caps = 0;
 
-	// TODO: request_firmware must be implemented on Windows
 	ret = request_firmware(&fw, fw_wm, dev);
 	if (ret)
 		return ret;
 
 	if (!fw || !fw->data || fw->size < sizeof(*hdr)) {
-		// dev_err(dev, "Invalid firmware\n"); // to remove (log)
+		dev_err(dev, "Invalid firmware\n");
 		goto out;
 	}
 
@@ -679,7 +663,6 @@ mt792x_get_offload_capability(struct device *dev, const char *fw_wm)
 	}
 
 out:
-	// TODO: release_firmware must be implemented on Windows
 	release_firmware(fw);
 
 	return offload_caps;
@@ -692,7 +675,6 @@ mt792x_get_mac80211_ops(struct device *dev,
 {
 	struct ieee80211_ops *ops;
 
-	// TODO: devm_kmemdup must be implemented on Windows
 	ops = devm_kmemdup(dev, mac80211_ops, sizeof(struct ieee80211_ops),
 			   GFP_KERNEL);
 	if (!ops)
@@ -788,7 +770,7 @@ int __mt792xe_mcu_drv_pmctrl(struct mt792x_dev *dev)
 	}
 
 	if (i == MT792x_DRV_OWN_RETRY_COUNT) {
-		// dev_err(dev->mt76.dev, "driver own failed\n"); // to remove (log)
+		dev_err(dev->mt76.dev, "driver own failed\n");
 		err = -EIO;
 	}
 
@@ -831,7 +813,7 @@ int mt792xe_mcu_fw_pmctrl(struct mt792x_dev *dev)
 	}
 
 	if (i == MT792x_DRV_OWN_RETRY_COUNT) {
-		//dev_err(dev->mt76.dev, "firmware own failed\n"); // to remove (log)
+		dev_err(dev->mt76.dev, "firmware own failed\n");
 		clear_bit(MT76_STATE_PM, &mphy->state);
 		return -EIO;
 	}
@@ -865,7 +847,7 @@ int mt792x_load_firmware(struct mt792x_dev *dev)
 
 	if (!mt76_poll_msec(dev, MT_CONN_ON_MISC, MT_TOP_MISC2_FW_N9_RDY,
 			    MT_TOP_MISC2_FW_N9_RDY, 1500)) {
-		// dev_err(dev->mt76.dev, "Timeout for initializing firmware\n"); // to remove (log)
+		dev_err(dev->mt76.dev, "Timeout for initializing firmware\n");
 
 		return -EIO;
 	}
@@ -874,7 +856,7 @@ int mt792x_load_firmware(struct mt792x_dev *dev)
 	dev->mt76.hw->wiphy->wowlan = &mt76_connac_wowlan_support;
 #endif /* CONFIG_PM */
 
-	// dev_dbg(dev->mt76.dev, "Firmware init done\n"); // to remove (log)
+	dev_dbg(dev->mt76.dev, "Firmware init done\n");
 
 	return 0;
 }

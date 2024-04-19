@@ -317,7 +317,6 @@ static inline u8 mt76_connac_spe_idx(u8 antenna_mask)
 static inline void mt76_connac_irq_enable(struct mt76_dev *dev, u32 mask)
 {
 	mt76_set_irq_mask(dev, 0, 0, mask);
-	// TODO: tasklet_schedule must be implemented on Windows
 	tasklet_schedule(&dev->irq_tasklet);
 }
 
@@ -338,7 +337,6 @@ mt76_connac_pm_ref(struct mt76_phy *phy, struct mt76_connac_pm *pm)
 {
 	bool ret = false;
 
-	// TODO: spin_lock_bh must be implemented on Windows
 	spin_lock_bh(&pm->wake.lock);
 	if (test_bit(MT76_STATE_PM, &phy->state))
 		goto out;
@@ -346,7 +344,6 @@ mt76_connac_pm_ref(struct mt76_phy *phy, struct mt76_connac_pm *pm)
 	pm->wake.count++;
 	ret = true;
 out:
-	// TODO: spin_unlock_bh must be implemented on Windows
 	spin_unlock_bh(&pm->wake.lock);
 
 	return ret;
@@ -355,7 +352,6 @@ out:
 static inline void
 mt76_connac_pm_unref(struct mt76_phy *phy, struct mt76_connac_pm *pm)
 {
-	// TODO: spin_lock_bh must be implemented on Windows
 	spin_lock_bh(&pm->wake.lock);
 
 	pm->last_activity = jiffies;
@@ -363,7 +359,6 @@ mt76_connac_pm_unref(struct mt76_phy *phy, struct mt76_connac_pm *pm)
 	    test_bit(MT76_STATE_MCU_RUNNING, &phy->state))
 		mt76_connac_power_save_sched(phy, pm);
 
-	// TODO: spin_unlock_bh must be implemented on Windows
 	spin_unlock_bh(&pm->wake.lock);
 }
 
@@ -377,7 +372,6 @@ mt76_connac_skip_fw_pmctrl(struct mt76_phy *phy, struct mt76_connac_pm *pm)
 		return true;
 
 	spin_lock_bh(&pm->wake.lock);
-	// TODO: test_and_set_bit must be implemented on Windows
 	ret = pm->wake.count || test_and_set_bit(MT76_STATE_PM, &phy->state);
 	spin_unlock_bh(&pm->wake.lock);
 

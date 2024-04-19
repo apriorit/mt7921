@@ -3,8 +3,6 @@
 
 #include "mt7921.h"
 
-// As we don't need logs there is no need to implement logic of functions in this file for Windows.
-
 static int
 mt7921_reg_set(void *data, u64 val)
 {
@@ -107,22 +105,22 @@ mt7921_txpwr(struct seq_file *s, void *data)
 	seq_printf(s, "%-16s  %6s %6s %6s %6s\n",
 		   " ", "1m", "2m", "5m", "11m");
 	mt7921_print_txpwr_entry(CCK, cck);
-	
+
 	seq_printf(s, "%-16s  %6s %6s %6s %6s %6s %6s %6s %6s\n",
 		   " ", "6m", "9m", "12m", "18m", "24m", "36m",
 		   "48m", "54m");
 	mt7921_print_txpwr_entry(OFDM, ofdm);
-	
+
 	seq_printf(s, "%-16s  %6s %6s %6s %6s %6s %6s %6s %6s\n",
 		   " ", "mcs0", "mcs1", "mcs2", "mcs3", "mcs4", "mcs5",
 		   "mcs6", "mcs7");
 	mt7921_print_txpwr_entry(HT20, ht20);
-	
+
 	seq_printf(s, "%-16s  %6s %6s %6s %6s %6s %6s %6s %6s %6s\n",
 		   " ", "mcs0", "mcs1", "mcs2", "mcs3", "mcs4", "mcs5",
 		   "mcs6", "mcs7", "mcs32");
 	mt7921_print_txpwr_entry(HT40, ht40);
-	
+
 	seq_printf(s, "%-16s  %6s %6s %6s %6s %6s %6s %6s %6s %6s %6s %6s %6s\n",
 		   " ", "mcs0", "mcs1", "mcs2", "mcs3", "mcs4", "mcs5",
 		   "mcs6", "mcs7", "mcs8", "mcs9", "mcs10", "mcs11");

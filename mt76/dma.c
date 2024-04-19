@@ -12,11 +12,11 @@
 #define Q_READ(_q, _field) ({						\
 	u32 _offset = offsetof(struct mt76_queue_regs, _field);		\
 	u32 _val;							\
-	if ((_q)->flags & MT_QFLAG_WED)	/* TODO: mtk_wed_device_reg_read must be implemented on Windows*/				\
+	if ((_q)->flags & MT_QFLAG_WED)					\
 		_val = mtk_wed_device_reg_read((_q)->wed,		\
 					       ((_q)->wed_regs +	\
 					        _offset));		\
-	else /* TODO: readl must be implemented on Windows*/								\
+	else								\
 		_val = readl(&(_q)->regs->_field);			\
 	_val;								\
 })
@@ -24,18 +24,16 @@
 #define Q_WRITE(_q, _field, _val)	do {				\
 	u32 _offset = offsetof(struct mt76_queue_regs, _field);		\
 	if ((_q)->flags & MT_QFLAG_WED)					\
-		mtk_wed_device_reg_write((_q)->wed,	/* TODO: mtk_wed_device_reg_write must be implemented on Windows*/		\
+		mtk_wed_device_reg_write((_q)->wed,			\
 					 ((_q)->wed_regs + _offset),	\
 					 _val);				\
 	else								\
-		writel(_val, &(_q)->regs->_field);	/* TODO: writel must be implemented on Windows*/		\
+		writel(_val, &(_q)->regs->_field);			\
 } while (0)
 
 #else
 
-// TODO: readl must be implemented on Windows
 #define Q_READ(_q, _field)		readl(&(_q)->regs->_field)
-// TODO: writel must be implemented on Windows
 #define Q_WRITE(_q, _field, _val)	writel(_val, &(_q)->regs->_field)
 
 #endif
@@ -48,19 +46,14 @@ mt76_alloc_txwi(struct mt76_dev *dev)
 	u8 *txwi;
 	int size;
 
-	// TODO: L1_CACHE_ALIGN must be implemented on Windows
 	size = L1_CACHE_ALIGN(dev->drv->txwi_size + sizeof(*t));
-	// TODO: kzalloc must be implemented on Windows
 	txwi = kzalloc(size, GFP_ATOMIC);
 	if (!txwi)
 		return NULL;
 
-	// TODO: dma_map_single must be implemented on Windows
 	addr = dma_map_single(dev->dma_dev, txwi, dev->drv->txwi_size,
 			      DMA_TO_DEVICE);
-	// TODO: dma_map_single must be implemented on Windows 
 	if (unlikely(dma_mapping_error(dev->dma_dev, addr))) {
-		// TODO: kfree must be implemented on Windows
 		kfree(txwi);
 		return NULL;
 	}
@@ -76,8 +69,6 @@ mt76_alloc_rxwi(struct mt76_dev *dev)
 {
 	struct mt76_txwi_cache *t;
 
-	// TODO: kzalloc must be implemented on Windows
-	// TODO: L1_CACHE_ALIGN must be implemented on Windows
 	t = kzalloc(L1_CACHE_ALIGN(sizeof(*t)), GFP_ATOMIC);
 	if (!t)
 		return NULL;
@@ -91,17 +82,12 @@ __mt76_get_txwi(struct mt76_dev *dev)
 {
 	struct mt76_txwi_cache *t = NULL;
 
-	// TODO: spin_lock must be implemented on Windows
 	spin_lock(&dev->lock);
-	// TODO: list_empty must be implemented on Windows
 	if (!list_empty(&dev->txwi_cache)) {
-		// TODO: list_first_entry must be implemented on Windows
 		t = list_first_entry(&dev->txwi_cache, struct mt76_txwi_cache,
 				     list);
-		// TODO: list_del must be implemented on Windows
 		list_del(&t->list);
 	}
-	// TODO: spin_unlock must be implemented on Windows
 	spin_unlock(&dev->lock);
 
 	return t;
@@ -112,17 +98,12 @@ __mt76_get_rxwi(struct mt76_dev *dev)
 {
 	struct mt76_txwi_cache *t = NULL;
 
-	// TODO: spin_lock_bh must be implemented on Windows
 	spin_lock_bh(&dev->wed_lock);
-	// TODO: list_empty must be implemented on Windows
 	if (!list_empty(&dev->rxwi_cache)) {
-		// TODO: list_first_entry must be implemented on Windows
 		t = list_first_entry(&dev->rxwi_cache, struct mt76_txwi_cache,
 				     list);
-		// TODO: list_del must be implemented on Windows
 		list_del(&t->list);
 	}
-	// TODO: spin_unlock_bh must be implemented on Windows
 	spin_unlock_bh(&dev->wed_lock);
 
 	return t;
@@ -157,11 +138,8 @@ mt76_put_txwi(struct mt76_dev *dev, struct mt76_txwi_cache *t)
 	if (!t)
 		return;
 
-	// TODO: spin_lock must be implemented on Windows
 	spin_lock(&dev->lock);
-	// TODO: list_add must be implemented on Windows
 	list_add(&t->list, &dev->txwi_cache);
-	// TODO: spin_unlock must be implemented on Windows
 	spin_unlock(&dev->lock);
 }
 EXPORT_SYMBOL_GPL(mt76_put_txwi);
@@ -172,11 +150,8 @@ mt76_put_rxwi(struct mt76_dev *dev, struct mt76_txwi_cache *t)
 	if (!t)
 		return;
 
-	// TODO: spin_lock_bh must be implemented on Windows
 	spin_lock_bh(&dev->wed_lock);
-	// TODO: list_add must be implemented on Windows
 	list_add(&t->list, &dev->rxwi_cache);
-	// TODO: spin_unlock_bh must be implemented on Windows
 	spin_unlock_bh(&dev->wed_lock);
 }
 EXPORT_SYMBOL_GPL(mt76_put_rxwi);
@@ -186,16 +161,12 @@ mt76_free_pending_txwi(struct mt76_dev *dev)
 {
 	struct mt76_txwi_cache *t;
 
-	// TODO: local_bh_disable must be implemented on Windows
 	local_bh_disable();
 	while ((t = __mt76_get_txwi(dev)) != NULL) {
-		// TODO: dma_unmap_single must be implemented on Windows
 		dma_unmap_single(dev->dma_dev, t->dma_addr, dev->drv->txwi_size,
 				 DMA_TO_DEVICE);
-		// TODO: kfree must be implemented on Windows
 		kfree(mt76_get_txwi_ptr(dev, t));
 	}
-	// TODO: local_bh_enable must be implemented on Windows
 	local_bh_enable();
 }
 
@@ -204,15 +175,12 @@ mt76_free_pending_rxwi(struct mt76_dev *dev)
 {
 	struct mt76_txwi_cache *t;
 
-	// TODO: local_bh_disable must be implemented on Windows
 	local_bh_disable();
 	while ((t = __mt76_get_rxwi(dev)) != NULL) {
 		if (t->ptr)
 			mt76_put_page_pool_buf(t->ptr, false);
-		// TODO: kfree must be implemented on Windows
 		kfree(t);
 	}
-	// TODO: local_bh_enable must be implemented on Windows
 	local_bh_enable();
 }
 EXPORT_SYMBOL_GPL(mt76_free_pending_rxwi);
@@ -241,7 +209,6 @@ __mt76_dma_queue_reset(struct mt76_dev *dev, struct mt76_queue *q,
 
 		/* clear descriptors */
 		for (i = 0; i < q->ndesc; i++)
-			// TODO: cpu_to_le32 must be implemented on Windows
 			q->desc[i].ctrl = cpu_to_le32(MT_DMA_CTL_DMA_DONE);
 	}
 
@@ -278,10 +245,8 @@ mt76_dma_add_rx_buf(struct mt76_dev *dev, struct mt76_queue *q,
 	}
 
 	desc = &q->desc[q->head];
-	// TODO: FIELD_PREP must be implemented on Windows
 	ctrl = FIELD_PREP(MT_DMA_CTL_SD_LEN0, buf[0].len);
 #ifdef CONFIG_ARCH_DMA_ADDR_T_64BIT
-	// TODO: FIELD_PREP must be implemented on Windows
 	buf1 = FIELD_PREP(MT_DMA_CTL_SDP0_H, buf->addr >> 32);
 #endif
 
@@ -296,12 +261,10 @@ mt76_dma_add_rx_buf(struct mt76_dev *dev, struct mt76_queue *q,
 			return -ENOMEM;
 		}
 
-		// TODO: FIELD_PREP must be implemented on Windows
 		buf1 |= FIELD_PREP(MT_DMA_CTL_TOKEN, rx_token);
 		ctrl |= MT_DMA_CTL_TO_HOST;
 	}
 
-	// TODO: cpu_to_le32 must be implemented on Windows
 	WRITE_ONCE(desc->buf0, cpu_to_le32(buf->addr));
 	WRITE_ONCE(desc->buf1, cpu_to_le32(buf1));
 	WRITE_ONCE(desc->ctrl, cpu_to_le32(ctrl));
@@ -351,20 +314,16 @@ mt76_dma_add_buf(struct mt76_dev *dev, struct mt76_queue *q,
 		entry->dma_addr[0] = buf[0].addr;
 		entry->dma_len[0] = buf[0].len;
 
-		// TODO: FIELD_PREP must be implemented on Windows
 		ctrl = FIELD_PREP(MT_DMA_CTL_SD_LEN0, buf[0].len);
 #ifdef CONFIG_ARCH_DMA_ADDR_T_64BIT
-		// TODO: FIELD_PREP must be implemented on Windows
 		info |= FIELD_PREP(MT_DMA_CTL_SDP0_H, buf[0].addr >> 32);
 #endif
 		if (i < nbufs - 1) {
 			entry->dma_addr[1] = buf[1].addr;
 			entry->dma_len[1] = buf[1].len;
 			buf1 = buf[1].addr;
-			// TODO: FIELD_PREP must be implemented on Windows
 			ctrl |= FIELD_PREP(MT_DMA_CTL_SD_LEN1, buf[1].len);
 #ifdef CONFIG_ARCH_DMA_ADDR_T_64BIT
-			// TODO: FIELD_PREP must be implemented on Windows
 			info |= FIELD_PREP(MT_DMA_CTL_SDP1_H,
 					   buf[1].addr >> 32);
 #endif
@@ -377,7 +336,6 @@ mt76_dma_add_buf(struct mt76_dev *dev, struct mt76_queue *q,
 		else if (i == nbufs - 2)
 			ctrl |= MT_DMA_CTL_LAST_SEC1;
 
-		// TODO: cpu_to_le32 must be implemented on Windows
 		WRITE_ONCE(desc->buf0, cpu_to_le32(buf0));
 		WRITE_ONCE(desc->buf1, cpu_to_le32(buf1));
 		WRITE_ONCE(desc->info, cpu_to_le32(info));
@@ -401,12 +359,10 @@ mt76_dma_tx_cleanup_idx(struct mt76_dev *dev, struct mt76_queue *q, int idx,
 	struct mt76_queue_entry *e = &q->entry[idx];
 
 	if (!e->skip_buf0)
-		// TODO: dma_unmap_single must be implemented on Windows
 		dma_unmap_single(dev->dma_dev, e->dma_addr[0], e->dma_len[0],
 				 DMA_TO_DEVICE);
 
 	if (!e->skip_buf1)
-		// TODO: dma_unmap_single must be implemented on Windows
 		dma_unmap_single(dev->dma_dev, e->dma_addr[1], e->dma_len[1],
 				 DMA_TO_DEVICE);
 
@@ -420,7 +376,6 @@ mt76_dma_tx_cleanup_idx(struct mt76_dev *dev, struct mt76_queue *q, int idx,
 static void
 mt76_dma_kick_queue(struct mt76_dev *dev, struct mt76_queue *q)
 {
-	// TODO: wmb must be implemented on Windows
 	wmb();
 	Q_WRITE(q, cpu_idx, q->head);
 }
@@ -434,7 +389,6 @@ mt76_dma_tx_cleanup(struct mt76_dev *dev, struct mt76_queue *q, bool flush)
 	if (!q || !q->ndesc)
 		return;
 
-	// TODO: spin_lock_bh must be implemented on Windows
 	spin_lock_bh(&q->cleanup_lock);
 	if (flush)
 		last = -1;
@@ -453,20 +407,16 @@ mt76_dma_tx_cleanup(struct mt76_dev *dev, struct mt76_queue *q, bool flush)
 		if (!flush && q->tail == last)
 			last = Q_READ(q, dma_idx);
 	}
-	// TODO: spin_unlock_bh must be implemented on Windows
 	spin_unlock_bh(&q->cleanup_lock);
 
 	if (flush) {
-		// TODO: spin_lock_bh must be implemented on Windows
 		spin_lock_bh(&q->lock);
 		mt76_dma_sync_idx(dev, q);
 		mt76_dma_kick_queue(dev, q);
-		// TODO: spin_unlock_bh must be implemented on Windows
 		spin_unlock_bh(&q->lock);
 	}
 
 	if (!q->queued)
-		// TODO: wake_up must be implemented on Windows
 		wake_up(&dev->tx_wait);
 }
 
@@ -482,36 +432,28 @@ mt76_dma_get_buf(struct mt76_dev *dev, struct mt76_queue *q, int idx,
 	if (mt76_queue_is_wed_rro_ind(q))
 		goto done;
 
-	// TODO: le32_to_cpu must be implemented on Windows
 	ctrl = le32_to_cpu(READ_ONCE(desc->ctrl));
 	if (len) {
-		// TODO: FIELD_GET must be implemented on Windows
 		*len = FIELD_GET(MT_DMA_CTL_SD_LEN0, ctrl);
 		*more = !(ctrl & MT_DMA_CTL_LAST_SEC0);
 	}
 
-	// TODO: le32_to_cpu must be implemented on Windows
 	desc_info = le32_to_cpu(desc->info);
 	if (info)
 		*info = desc_info;
 
-	// TODO: le32_to_cpu must be implemented on Windows
 	buf1 = le32_to_cpu(desc->buf1);
 	mt76_dma_should_drop_buf(drop, ctrl, buf1, desc_info);
 
 	if (mt76_queue_is_wed_rx(q)) {
-		// TODO: FIELD_GET must be implemented on Windows
 		u32 token = FIELD_GET(MT_DMA_CTL_TOKEN, buf1);
 		struct mt76_txwi_cache *t = mt76_rx_token_release(dev, token);
 
 		if (!t)
 			return NULL;
 
-		// TODO: dma_sync_single_for_cpu must be implemented on Windows
 		dma_sync_single_for_cpu(dev->dma_dev, t->dma_addr,
-				// TODO: SKB_WITH_OVERHEAD must be implemented on Windows
 				SKB_WITH_OVERHEAD(q->buf_size),
-				// TODO: page_pool_get_dma_dir must be implemented on Windows
 				page_pool_get_dma_dir(q->page_pool));
 
 		buf = t->ptr;
@@ -522,11 +464,8 @@ mt76_dma_get_buf(struct mt76_dev *dev, struct mt76_queue *q, int idx,
 		if (drop)
 			*drop |= !!(buf1 & MT_DMA_CTL_WO_DROP);
 	} else {
-		// TODO: dma_sync_single_for_cpu must be implemented on Windows
 		dma_sync_single_for_cpu(dev->dma_dev, e->dma_addr[0],
-				// TODO: SKB_WITH_OVERHEAD must be implemented on Windows
 				SKB_WITH_OVERHEAD(q->buf_size),
-				// TODO: page_pool_get_dma_dir must be implemented on Windows
 				page_pool_get_dma_dir(q->page_pool));
 	}
 
@@ -550,7 +489,6 @@ mt76_dma_dequeue(struct mt76_dev *dev, struct mt76_queue *q, bool flush,
 
 	if (!mt76_queue_is_wed_rro_ind(q)) {
 		if (flush)
-			// TODO: cpu_to_le32 must be implemented on Windows
 			q->desc[idx].ctrl |= cpu_to_le32(MT_DMA_CTL_DMA_DONE);
 		else if (!(q->desc[idx].ctrl & cpu_to_le32(MT_DMA_CTL_DMA_DONE)))
 			return NULL;
@@ -562,8 +500,6 @@ mt76_dma_dequeue(struct mt76_dev *dev, struct mt76_queue *q, bool flush,
 	return mt76_dma_get_buf(dev, q, idx, len, info, more, drop);
 }
 
-
-// to remove (data transmission)
 static int
 mt76_dma_tx_queue_skb_raw(struct mt76_dev *dev, struct mt76_queue *q,
 			  struct sk_buff *skb, u32 tx_info)
@@ -571,39 +507,32 @@ mt76_dma_tx_queue_skb_raw(struct mt76_dev *dev, struct mt76_queue *q,
 	struct mt76_queue_buf buf = {};
 	dma_addr_t addr;
 
-	// TODO: test_bit must be implemented on Windows
 	if (test_bit(MT76_MCU_RESET, &dev->phy.state))
 		goto error;
 
 	if (q->queued + 1 >= q->ndesc - 1)
 		goto error;
 
-	// TODO: dma_map_single must be implemented on Windows
 	addr = dma_map_single(dev->dma_dev, skb->data, skb->len,
 			      DMA_TO_DEVICE);
-	// TODO: dma_mapping_error must be implemented on Windows
 	if (unlikely(dma_mapping_error(dev->dma_dev, addr)))
 		goto error;
 
 	buf.addr = addr;
 	buf.len = skb->len;
 
-	// TODO: spin_lock_bh must be implemented on Windows
 	spin_lock_bh(&q->lock);
 	mt76_dma_add_buf(dev, q, &buf, 1, tx_info, skb, NULL);
 	mt76_dma_kick_queue(dev, q);
-	// TODO: spin_unlock_bh must be implemented on Windows
 	spin_unlock_bh(&q->lock);
 
 	return 0;
 
 error:
-	// TODO: dev_kfree_skb must be implemented on Windows
 	dev_kfree_skb(skb);
 	return -ENOMEM;
 }
 
-// to remove (data transmission)
 static int
 mt76_dma_tx_queue_skb(struct mt76_dev *dev, struct mt76_queue *q,
 		      enum mt76_txq_id qid, struct sk_buff *skb,
@@ -622,7 +551,6 @@ mt76_dma_tx_queue_skb(struct mt76_dev *dev, struct mt76_queue *q,
 	dma_addr_t addr;
 	u8 *txwi;
 
-	// TODO: test_bit must be implemented on Windows
 	if (test_bit(MT76_RESET, &dev->phy.state))
 		goto free_skb;
 
@@ -636,11 +564,8 @@ mt76_dma_tx_queue_skb(struct mt76_dev *dev, struct mt76_queue *q,
 	if (dev->drv->drv_flags & MT_DRV_TX_ALIGNED4_SKBS)
 		mt76_insert_hdr_pad(skb);
 
-	// TODO: skb_headlen must be implemented on Windows
 	len = skb_headlen(skb);
-	// TODO: dma_map_single must be implemented on Windows
 	addr = dma_map_single(dev->dma_dev, skb->data, len, DMA_TO_DEVICE);
-	// TODO: dma_mapping_error must be implemented on Windows
 	if (unlikely(dma_mapping_error(dev->dma_dev, addr)))
 		goto free;
 
@@ -649,15 +574,12 @@ mt76_dma_tx_queue_skb(struct mt76_dev *dev, struct mt76_queue *q,
 	tx_info.buf[n].addr = addr;
 	tx_info.buf[n++].len = len;
 
-	// TODO: skb_walk_frags must be implemented on Windows
 	skb_walk_frags(skb, iter) {
 		if (n == ARRAY_SIZE(tx_info.buf))
 			goto unmap;
 
-		// TODO: dma_map_single must be implemented on Windows
 		addr = dma_map_single(dev->dma_dev, iter->data, iter->len,
 				      DMA_TO_DEVICE);
-		// TODO: dma_mapping_error must be implemented on Windows
 		if (unlikely(dma_mapping_error(dev->dma_dev, addr)))
 			goto unmap;
 
@@ -671,7 +593,6 @@ mt76_dma_tx_queue_skb(struct mt76_dev *dev, struct mt76_queue *q,
 		goto unmap;
 	}
 
-	// TODO: dma_mapping_error must be implemented on Windows
 	dma_sync_single_for_cpu(dev->dma_dev, t->dma_addr, dev->drv->txwi_size,
 				DMA_TO_DEVICE);
 	ret = dev->drv->tx_prepare_skb(dev, txwi, qid, wcid, sta, &tx_info);
@@ -685,7 +606,6 @@ mt76_dma_tx_queue_skb(struct mt76_dev *dev, struct mt76_queue *q,
 
 unmap:
 	for (n--; n > 0; n--)
-		// TODO: dma_unmap_single must be implemented on Windows
 		dma_unmap_single(dev->dma_dev, tx_info.buf[n].addr,
 				 tx_info.buf[n].len, DMA_TO_DEVICE);
 
@@ -705,11 +625,8 @@ free:
 free_skb:
 	status.skb = tx_info.skb;
 	hw = mt76_tx_status_get_hw(dev, tx_info.skb);
-	// TODO: spin_lock_bh must be implemented on Windows
 	spin_lock_bh(&dev->rx_lock);
-	// TODO: ieee80211_tx_status_ext must be implemented on Windows
 	ieee80211_tx_status_ext(hw, &status);
-	// TODO: spin_unlock_bh must be implemented on Windows
 	spin_unlock_bh(&dev->rx_lock);
 
 	return ret;
@@ -719,14 +636,12 @@ static int
 mt76_dma_rx_fill(struct mt76_dev *dev, struct mt76_queue *q,
 		 bool allow_direct)
 {
-	// TODO: SKB_WITH_OVERHEAD must be implemented on Windows
 	int len = SKB_WITH_OVERHEAD(q->buf_size);
 	int frames = 0;
 
 	if (!q->ndesc)
 		return 0;
 
-	// TODO: spin_lock_bh must be implemented on Windows
 	spin_lock_bh(&q->lock);
 
 	while (q->queued < q->ndesc - 1) {
@@ -743,11 +658,8 @@ mt76_dma_rx_fill(struct mt76_dev *dev, struct mt76_queue *q,
 		if (!buf)
 			break;
 
-		// TODO: page_pool_get_dma_addr must be implemented on Windows
 		addr = page_pool_get_dma_addr(virt_to_head_page(buf)) + offset;
-		// TODO: page_pool_get_dma_dir must be implemented on Windows
 		dir = page_pool_get_dma_dir(q->page_pool);
-		// TODO: dma_sync_single_for_device must be implemented on Windows
 		dma_sync_single_for_device(dev->dma_dev, addr, len, dir);
 
 		qbuf.addr = addr + q->buf_offset;
@@ -764,7 +676,6 @@ done:
 	if (frames || mt76_queue_is_wed_rx(q))
 		mt76_dma_kick_queue(dev, q);
 
-	// TODO: spin_unlock_bh must be implemented on Windows
 	spin_unlock_bh(&q->lock);
 
 	return frames;
@@ -852,9 +763,7 @@ mt76_dma_alloc_queue(struct mt76_dev *dev, struct mt76_queue *q,
 {
 	int ret, size;
 
-	// TODO: spin_lock_init must be implemented on Windows
 	spin_lock_init(&q->lock);
-	// TODO: spin_lock_init must be implemented on Windows
 	spin_lock_init(&q->cleanup_lock);
 
 	q->regs = dev->mmio.regs + ring_base + idx * MT_RING_SIZE;
@@ -864,7 +773,6 @@ mt76_dma_alloc_queue(struct mt76_dev *dev, struct mt76_queue *q,
 
 	size = mt76_queue_is_wed_rro_ind(q) ? sizeof(struct mt76_wed_rro_desc)
 					    : sizeof(struct mt76_desc);
-	// TODO: dmam_alloc_coherent must be implemented on Windows
 	q->desc = dmam_alloc_coherent(dev->dma_dev, q->ndesc * size,
 				      &q->desc_dma, GFP_KERNEL);
 	if (!q->desc)
@@ -884,7 +792,6 @@ mt76_dma_alloc_queue(struct mt76_dev *dev, struct mt76_queue *q,
 	}
 
 	size = q->ndesc * sizeof(*q->entry);
-	// TODO: devm_kzalloc must be implemented on Windows
 	q->entry = devm_kzalloc(dev->dev, size, GFP_KERNEL);
 	if (!q->entry)
 		return -ENOMEM;
@@ -897,9 +804,7 @@ mt76_dma_alloc_queue(struct mt76_dev *dev, struct mt76_queue *q,
 	if (ret)
 		return ret;
 
-	// TODO: mtk_wed_device_active must be implemented on Windows
 	if (mtk_wed_device_active(&dev->mmio.wed)) {
-		// TODO: mtk_wed_get_rx_capa must be implemented on Windows
 		if ((mtk_wed_get_rx_capa(&dev->mmio.wed) && mt76_queue_is_wed_rro(q)) ||
 		    mt76_queue_is_wed_tx_free(q))
 			return 0;
@@ -920,10 +825,8 @@ mt76_dma_rx_cleanup(struct mt76_dev *dev, struct mt76_queue *q)
 		return;
 
 	do {
-		// TODO: spin_lock_bh must be implemented on Windows
 		spin_lock_bh(&q->lock);
 		buf = mt76_dma_dequeue(dev, q, true, NULL, NULL, &more, NULL);
-		// TODO: spin_unlock_bh must be implemented on Windows
 		spin_unlock_bh(&q->lock);
 
 		if (!buf)
@@ -933,15 +836,12 @@ mt76_dma_rx_cleanup(struct mt76_dev *dev, struct mt76_queue *q)
 			mt76_put_page_pool_buf(buf, false);
 	} while (1);
 
-	// TODO: spin_lock_bh must be implemented on Windows
 	spin_lock_bh(&q->lock);
 	if (q->rx_head) {
-		// TODO: dev_kfree_skb must be implemented on Windows
 		dev_kfree_skb(q->rx_head);
 		q->rx_head = NULL;
 	}
 
-	// TODO: spin_unlock_bh must be implemented on Windows
 	spin_unlock_bh(&q->lock);
 }
 
@@ -957,7 +857,6 @@ mt76_dma_rx_reset(struct mt76_dev *dev, enum mt76_rxq_id qid)
 		int i;
 
 		for (i = 0; i < q->ndesc; i++)
-			// TODO: cpu_to_le32 must be implemented on Windows
 			q->desc[i].ctrl = cpu_to_le32(MT_DMA_CTL_DMA_DONE);
 	}
 
@@ -969,7 +868,6 @@ mt76_dma_rx_reset(struct mt76_dev *dev, enum mt76_rxq_id qid)
 	if (mt76_queue_is_wed_tx_free(q))
 		return;
 
-	// TODO: mtk_wed_device_active must be implemented on Windows
 	if (mtk_wed_device_active(&dev->mmio.wed) &&
 	    mt76_queue_is_wed_rro(q))
 		return;
@@ -983,17 +881,13 @@ mt76_add_fragment(struct mt76_dev *dev, struct mt76_queue *q, void *data,
 		  int len, bool more, u32 info, bool allow_direct)
 {
 	struct sk_buff *skb = q->rx_head;
-	// TODO: skb_shinfo must be implemented on Windows
 	struct skb_shared_info *shinfo = skb_shinfo(skb);
 	int nr_frags = shinfo->nr_frags;
 
 	if (nr_frags < ARRAY_SIZE(shinfo->frags)) {
-		// TODO: virt_to_head_page must be implemented on Windows
 		struct page *page = virt_to_head_page(data);
-		// TODO: page_address must be implemented on Windows
 		int offset = data - page_address(page) + q->buf_offset;
 
-		// TODO: skb_add_rx_frag must be implemented on Windows
 		skb_add_rx_frag(skb, nr_frags, page, offset, len, q->buf_size);
 	} else {
 		mt76_put_page_pool_buf(data, allow_direct);
@@ -1006,7 +900,6 @@ mt76_add_fragment(struct mt76_dev *dev, struct mt76_queue *q, void *data,
 	if (nr_frags < ARRAY_SIZE(shinfo->frags))
 		dev->drv->rx_skb(dev, q - dev->q_rx, skb, &info);
 	else
-		// TODO: dev_kfree_skb must be implemented on Windows
 		dev_kfree_skb(skb);
 }
 
@@ -1020,7 +913,6 @@ mt76_dma_rx_process(struct mt76_dev *dev, struct mt76_queue *q, int budget)
 	bool allow_direct = !mt76_queue_is_wed_rx(q);
 	bool more;
 
-	// TODO: IS_ENABLED must be implemented on Windows
 	if (IS_ENABLED(CONFIG_NET_MEDIATEK_SOC_WED) &&
 	    mt76_queue_is_wed_tx_free(q)) {
 		dma_idx = Q_READ(q, dma_idx);
@@ -1050,11 +942,9 @@ mt76_dma_rx_process(struct mt76_dev *dev, struct mt76_queue *q, int budget)
 		if (q->rx_head)
 			data_len = q->buf_size;
 		else
-			// TODO: SKB_WITH_OVERHEAD must be implemented on Windows
 			data_len = SKB_WITH_OVERHEAD(q->buf_size);
 
 		if (data_len < len + q->buf_offset) {
-			// TODO: dev_kfree_skb must be implemented on Windows
 			dev_kfree_skb(q->rx_head);
 			q->rx_head = NULL;
 			goto free_frag;
@@ -1070,19 +960,15 @@ mt76_dma_rx_process(struct mt76_dev *dev, struct mt76_queue *q, int budget)
 		    !(dev->drv->rx_check(dev, data, len)))
 			goto free_frag;
 
-		// TODO: napi_build_skb must be implemented on Windows
 		skb = napi_build_skb(data, q->buf_size);
 		if (!skb)
 			goto free_frag;
 
-		// TODO: skb_reserve must be implemented on Windows
 		skb_reserve(skb, q->buf_offset);
-		// TODO: skb_mark_for_recycle must be implemented on Windows
 		skb_mark_for_recycle(skb);
 
 		*(u32 *)skb->cb = info;
 
-		// TODO: __skb_put must be implemented on Windows
 		__skb_put(skb, len);
 		done++;
 
@@ -1107,11 +993,9 @@ int mt76_dma_rx_poll(struct napi_struct *napi, int budget)
 	struct mt76_dev *dev;
 	int qid, done = 0, cur;
 
-	// TODO: container_of must be implemented on Windows
 	dev = container_of(napi->dev, struct mt76_dev, napi_dev);
 	qid = napi - dev->napi;
 
-	// TODO: rcu_read_lock must be implemented on Windows
 	rcu_read_lock();
 
 	do {
@@ -1120,10 +1004,8 @@ int mt76_dma_rx_poll(struct napi_struct *napi, int budget)
 		done += cur;
 	} while (cur && done < budget);
 
-	// TODO: rcu_read_unlock must be implemented on Windows
 	rcu_read_unlock();
 
-	// TODO: napi_complete must be implemented on Windows
 	if (done < budget && napi_complete(napi))
 		dev->drv->rx_poll_complete(dev, qid);
 
@@ -1137,22 +1019,17 @@ mt76_dma_init(struct mt76_dev *dev,
 {
 	int i;
 
-	// TODO: init_dummy_netdev must be implemented on Windows
 	init_dummy_netdev(&dev->napi_dev);
 	init_dummy_netdev(&dev->tx_napi_dev);
 	snprintf(dev->napi_dev.name, sizeof(dev->napi_dev.name), "%s",
-		// TODO: wiphy_name must be implemented on Windows
 		 wiphy_name(dev->hw->wiphy));
 	dev->napi_dev.threaded = 1;
-	// TODO: init_completion must be implemented on Windows
 	init_completion(&dev->mmio.wed_reset);
 	init_completion(&dev->mmio.wed_reset_complete);
 
 	mt76_for_each_q_rx(dev, i) {
-		// TODO: netif_napi_add must be implemented on Windows
 		netif_napi_add(&dev->napi_dev, &dev->napi[i], poll);
 		mt76_dma_rx_fill(dev, &dev->q_rx[i], false);
-		// TODO: napi_enable must be implemented on Windows
 		napi_enable(&dev->napi[i]);
 	}
 
@@ -1196,7 +1073,6 @@ void mt76_dma_cleanup(struct mt76_dev *dev)
 	int i;
 
 	mt76_worker_disable(&dev->tx_worker);
-	// TODO: netif_napi_del must be implemented on Windows
 	netif_napi_del(&dev->tx_napi);
 
 	for (i = 0; i < ARRAY_SIZE(dev->phys); i++) {
@@ -1216,7 +1092,6 @@ void mt76_dma_cleanup(struct mt76_dev *dev)
 	mt76_for_each_q_rx(dev, i) {
 		struct mt76_queue *q = &dev->q_rx[i];
 
-		// TODO: mtk_wed_device_active must be implemented on Windows
 		if (mtk_wed_device_active(&dev->mmio.wed) &&
 		    mt76_queue_is_wed_rro(q))
 			continue;
@@ -1224,13 +1099,10 @@ void mt76_dma_cleanup(struct mt76_dev *dev)
 		netif_napi_del(&dev->napi[i]);
 		mt76_dma_rx_cleanup(dev, q);
 
-		// TODO: page_pool_destroy must be implemented on Windows
 		page_pool_destroy(q->page_pool);
 	}
 
-	// TODO: mtk_wed_device_active must be implemented on Windows
 	if (mtk_wed_device_active(&dev->mmio.wed))
-		// TODO: mtk_wed_device_detach must be implemented on Windows
 		mtk_wed_device_detach(&dev->mmio.wed);
 
 	if (mtk_wed_device_active(&dev->mmio.wed_hif2))

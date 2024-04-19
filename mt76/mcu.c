@@ -12,21 +12,17 @@ __mt76_mcu_msg_alloc(struct mt76_dev *dev, const void *data,
 	const struct mt76_mcu_ops *ops = dev->mcu_ops;
 	struct sk_buff *skb;
 
-	// TODO: max_t must be implemented on Windows
 	len = max_t(int, len, data_len);
 	len = ops->headroom + len + ops->tailroom;
 
-	// TODO: alloc_skb must be implemented on Windows
 	skb = alloc_skb(len, gfp);
 	if (!skb)
 		return NULL;
 
 	memset(skb->head, 0, len);
-	// TODO: skb_reserve must be implemented on Windows
 	skb_reserve(skb, ops->headroom);
 
 	if (data && data_len)
-		// TODO: skb_put_data must be implemented on Windows
 		skb_put_data(skb, data, data_len);
 
 	return skb;
@@ -38,27 +34,21 @@ struct sk_buff *mt76_mcu_get_response(struct mt76_dev *dev,
 {
 	unsigned long timeout;
 
-	// TODO: max_t must be implemented on Windows
 	if (!time_is_after_jiffies(expires))
 		return NULL;
 
 	timeout = expires - jiffies;
-	// TODO: wait_event_timeout must be implemented on Windows
 	wait_event_timeout(dev->mcu.wait,
-		// TODO: skb_queue_empty must be implemented on Windows
 			   (!skb_queue_empty(&dev->mcu.res_q) ||
 			    test_bit(MT76_MCU_RESET, &dev->phy.state)),
 			   timeout);
-	// TODO: skb_dequeue must be implemented on Windows
 	return skb_dequeue(&dev->mcu.res_q);
 }
 EXPORT_SYMBOL_GPL(mt76_mcu_get_response);
 
 void mt76_mcu_rx_event(struct mt76_dev *dev, struct sk_buff *skb)
 {
-	// TODO: skb_queue_tail must be implemented on Windows
 	skb_queue_tail(&dev->mcu.res_q, skb);
-	// TODO: wake_up must be implemented on Windows
 	wake_up(&dev->mcu.wait);
 }
 EXPORT_SYMBOL_GPL(mt76_mcu_rx_event);
@@ -89,7 +79,6 @@ int mt76_mcu_skb_send_and_get_msg(struct mt76_dev *dev, struct sk_buff *skb,
 	if (ret_skb)
 		*ret_skb = NULL;
 
-	// TODO: mutex_lock must be implemented on Windows
 	mutex_lock(&dev->mcu.mutex);
 
 	ret = dev->mcu_ops->mcu_skb_send_msg(dev, skb, cmd, &seq);
@@ -113,7 +102,6 @@ int mt76_mcu_skb_send_and_get_msg(struct mt76_dev *dev, struct sk_buff *skb,
 	} while (ret == -EAGAIN);
 
 out:
-	// TODO: mutex_unlock must be implemented on Windows
 	mutex_unlock(&dev->mcu.mutex);
 
 	return ret;
@@ -126,7 +114,6 @@ int __mt76_mcu_send_firmware(struct mt76_dev *dev, int cmd, const void *data,
 	int err, cur_len;
 
 	while (len > 0) {
-		// TODO: min_t must be implemented on Windows
 		cur_len = min_t(int, max_len, len);
 
 		err = mt76_mcu_send_msg(dev, cmd, data, cur_len, false);

@@ -26,7 +26,6 @@ bool mt7921_mac_wtbl_update(struct mt792x_dev *dev, int idx, u32 mask)
 
 static u32 mt7921_mac_wtbl_lmac_addr(int idx, u8 offset)
 {
-	// TODO: MT_WTBL_LMAC_OFFS must be implemented on Windows
 	return MT_WTBL_LMAC_OFFS(idx, 0) + offset * 4;
 }
 
@@ -41,17 +40,13 @@ static void mt7921_mac_sta_poll(struct mt792x_dev *dev)
 	struct ieee80211_sta *sta;
 	struct mt792x_sta *msta;
 	u32 tx_time[IEEE80211_NUM_ACS], rx_time[IEEE80211_NUM_ACS];
-	// TODO: LIST_HEAD need to implement on Windows
 	LIST_HEAD(sta_poll_list);
 	struct rate_info *rate;
 	s8 rssi[4];
 	int i;
 
-	// TODO: spin_lock_bh must be implemented on Windows
 	spin_lock_bh(&dev->mt76.sta_poll_lock);
-	// TODO: list_splice_init must be implemented on Windows
 	list_splice_init(&dev->mt76.sta_poll_list, &sta_poll_list);
-	// TODO: spin_unlock_bh must be implemented on Windows 
 	spin_unlock_bh(&dev->mt76.sta_poll_lock);
 
 	while (true) {
@@ -60,19 +55,14 @@ static void mt7921_mac_sta_poll(struct mt792x_dev *dev)
 		u16 idx;
 		u8 bw;
 
-		// TODO: spin_lock_bh must be implemented on Windows
 		spin_lock_bh(&dev->mt76.sta_poll_lock);
 		if (list_empty(&sta_poll_list)) {
-			// TODO: spin_unlock_bh must be implemented on Windows 
 			spin_unlock_bh(&dev->mt76.sta_poll_lock);
 			break;
 		}
-		// TODO: list_first_entry must be implemented on Windows
 		msta = list_first_entry(&sta_poll_list,
 					struct mt792x_sta, wcid.poll_list);
-		// TODO: list_del_init must be implemented on Windows
 		list_del_init(&msta->wcid.poll_list);
-		// TODO: spin_unlock_bh must be implemented on Windows
 		spin_unlock_bh(&dev->mt76.sta_poll_lock);
 
 		idx = msta->wcid.idx;
@@ -113,8 +103,7 @@ static void mt7921_mac_sta_poll(struct mt792x_dev *dev)
 
 			if (!tx_cur && !rx_cur)
 				continue;
-			
-			// TODO: ieee80211_sta_register_airtime must be implemented on Windows
+
 			ieee80211_sta_register_airtime(sta, tid, tx_cur,
 						       rx_cur);
 		}
@@ -222,14 +211,10 @@ mt7921_mac_fill_rx(struct mt792x_dev *dev, struct sk_buff *skb)
 
 	if (status->wcid) {
 		msta = container_of(status->wcid, struct mt792x_sta, wcid);
-		// TODO: spin_lock_bh must be implemented on Windows
 		spin_lock_bh(&dev->mt76.sta_poll_lock);
-		// TODO: list_empty must be implemented on Windows
 		if (list_empty(&msta->wcid.poll_list))
-			// TODO: list_add_tail must be implemented on Windows
 			list_add_tail(&msta->wcid.poll_list,
 				      &dev->mt76.sta_poll_list);
-		// TODO: spin_unlock_bh must be implemented on Windows
 		spin_unlock_bh(&dev->mt76.sta_poll_lock);
 	}
 
@@ -400,7 +385,6 @@ mt7921_mac_fill_rx(struct mt792x_dev *dev, struct sk_buff *skb)
 	}
 
 	hdr_gap = (u8 *)rxd - skb->data + 2 * remove_pad;
-	// TODO: ieee80211_has_morefrags must be implemented on Windows
 	if (hdr_trans && ieee80211_has_morefrags(fc)) {
 		struct ieee80211_vif *vif;
 		int err;
@@ -416,13 +400,10 @@ mt7921_mac_fill_rx(struct mt792x_dev *dev, struct sk_buff *skb)
 
 		hdr_trans = false;
 	} else {
-		// TODO: skb_pull must be implemented on Windows
 		skb_pull(skb, hdr_gap);
 		if (!hdr_trans && status->amsdu) {
 			memmove(skb->data + 2, skb->data,
-				// TODO: ieee80211_get_hdrlen_from_skb must be implemented on Windows
 				ieee80211_get_hdrlen_from_skb(skb));
-			// TODO: skb_pull must be implemented on Windows
 			skb_pull(skb, 2);
 		}
 	}
@@ -438,10 +419,8 @@ mt7921_mac_fill_rx(struct mt792x_dev *dev, struct sk_buff *skb)
 
 		hdr = mt76_skb_get_hdr(skb);
 		fc = hdr->frame_control;
-		// TODO: ieee80211_is_data_qos must be implemented on Windows
 		if (ieee80211_is_data_qos(fc)) {
 			seq_ctrl = le16_to_cpu(hdr->seq_ctrl);
-			// TODO: ieee80211_get_qos_ctl must be implemented on Windows
 			qos_ctl = *ieee80211_get_qos_ctl(hdr);
 		}
 	} else {
@@ -453,13 +432,10 @@ mt7921_mac_fill_rx(struct mt792x_dev *dev, struct sk_buff *skb)
 	if (rxv && mode >= MT_PHY_TYPE_HE_SU && !(status->flag & RX_FLAG_8023))
 		mt76_connac2_mac_decode_he_radiotap(&dev->mt76, skb, rxv, mode);
 
-	// TODO: ieee80211_is_data_qos must be implemented on Windows
 	if (!status->wcid || !ieee80211_is_data_qos(fc))
 		return 0;
 
-	// TODO: ieee80211_is_qos_nullfunc must be implemented on Windows
 	status->aggr = unicast && !ieee80211_is_qos_nullfunc(fc);
-	// TODO: IEEE80211_SEQ_TO_SN must be implemented on Windows
 	status->seqno = IEEE80211_SEQ_TO_SN(seq_ctrl);
 	status->qos_ctl = qos_ctl;
 
@@ -474,13 +450,10 @@ void mt7921_mac_add_txs(struct mt792x_dev *dev, void *data)
 	u16 wcidx;
 	u8 pid;
 
-	// TODO: le32_get_bits must be implemented on Windows
 	if (le32_get_bits(txs_data[0], MT_TXS0_TXS_FORMAT) > 1)
 		return;
 
-	// TODO: le32_get_bits must be implemented on Windows
 	wcidx = le32_get_bits(txs_data[2], MT_TXS2_WCID);
-	// TODO: le32_get_bits must be implemented on Windows
 	pid = le32_get_bits(txs_data[3], MT_TXS3_PID);
 
 	if (pid < MT_PACKET_ID_FIRST)
@@ -489,10 +462,8 @@ void mt7921_mac_add_txs(struct mt792x_dev *dev, void *data)
 	if (wcidx >= MT792x_WTBL_SIZE)
 		return;
 
-	// TODO: rcu_read_lock must be implemented on Windows
 	rcu_read_lock();
 
-	// TODO: rcu_dereference must be implemented on Windows
 	wcid = rcu_dereference(dev->mt76.wcid[wcidx]);
 	if (!wcid)
 		goto out;
@@ -503,17 +474,12 @@ void mt7921_mac_add_txs(struct mt792x_dev *dev, void *data)
 	if (!wcid->sta)
 		goto out;
 
-	// TODO: spin_lock_bh must be implemented on Windows
 	spin_lock_bh(&dev->mt76.sta_poll_lock);
-	// TODO: list_empty must be implemented on Windows
 	if (list_empty(&msta->wcid.poll_list))
-		// TODO: list_add_tail must be implemented on Windows
 		list_add_tail(&msta->wcid.poll_list, &dev->mt76.sta_poll_list);
-	// TODO: spin_unlock_bh must be implemented on Windows
 	spin_unlock_bh(&dev->mt76.sta_poll_lock);
 
 out:
-	// TODO: rcu_read_unlock must be implemented on Windows
 	rcu_read_unlock();
 }
 
@@ -535,7 +501,6 @@ static void mt7921_mac_tx_free(struct mt792x_dev *dev, void *data, int len)
 	mt76_queue_tx_cleanup(dev, dev->mphy.q_tx[MT_TXQ_PSD], false);
 	mt76_queue_tx_cleanup(dev, dev->mphy.q_tx[MT_TXQ_BE], false);
 
-	// TODO: le16_get_bits must be implemented on Windows
 	count = le16_get_bits(free->ctrl, MT_TX_FREE_MSDU_CNT);
 	if (WARN_ON_ONCE((void *)&tx_info[count] > end))
 		return;
@@ -641,7 +606,6 @@ void mt7921_queue_rx_skb(struct mt76_dev *mdev, enum mt76_rxq_id q,
 	case PKT_TYPE_TXRX_NOTIFY:
 		/* PKT_TYPE_TXRX_NOTIFY can be received only by mmio devices */
 		mt7921_mac_tx_free(dev, skb->data, skb->len);
-		// TODO: napi_consume_skb must be implemented on Windows
 		napi_consume_skb(skb, 1);
 		break;
 	case PKT_TYPE_RX_EVENT:
@@ -650,7 +614,6 @@ void mt7921_queue_rx_skb(struct mt76_dev *mdev, enum mt76_rxq_id q,
 	case PKT_TYPE_TXS:
 		for (rxd += 2; rxd + 8 <= end; rxd += 8)
 			mt7921_mac_add_txs(dev, rxd);
-		// TODO: dev_kfree_skb must be implemented on Windows
 		dev_kfree_skb(skb);
 		break;
 	case PKT_TYPE_NORMAL_MCU:
@@ -661,7 +624,6 @@ void mt7921_queue_rx_skb(struct mt76_dev *mdev, enum mt76_rxq_id q,
 		}
 		fallthrough;
 	default:
-		// TODO: dev_kfree_skb must be implemented on Windows
 		dev_kfree_skb(skb);
 		break;
 	}
@@ -677,7 +639,6 @@ mt7921_vif_connect_iter(void *priv, u8 *mac,
 	struct ieee80211_hw *hw = mt76_hw(dev);
 
 	if (vif->type == NL80211_IFTYPE_STATION)
-		// TODO: ieee80211_disconnect must be implemented on Windows
 		ieee80211_disconnect(vif, true);
 
 	mt76_connac_mcu_uni_add_dev(&dev->mphy, vif, &mvif->sta.wcid, true);
@@ -703,14 +664,10 @@ void mt7921_mac_reset_work(struct work_struct *work)
 
 	dev_dbg(dev->mt76.dev, "chip reset\n");
 	dev->hw_full_reset = true;
-	// TODO: ieee80211_stop_queues must be implemented on Windows
 	ieee80211_stop_queues(hw);
 
-	// TODO: cancel_delayed_work_sync must be implemented on Windows
 	cancel_delayed_work_sync(&dev->mphy.mac_work);
-	// TODO: cancel_delayed_work_sync must be implemented on Windows
 	cancel_delayed_work_sync(&pm->ps_work);
-	// TODO: cancel_work_sync must be implemented on Windows
 	cancel_work_sync(&pm->wake_work);
 
 	for (i = 0; i < 10; i++) {
@@ -723,23 +680,19 @@ void mt7921_mac_reset_work(struct work_struct *work)
 	}
 
 	if (i == 10)
-		// TODO: dev_err must be implemented on Windows
 		dev_err(dev->mt76.dev, "chip reset failed\n");
 
-	// TODO: test_and_clear_bit must be implemented on Windows
 	if (test_and_clear_bit(MT76_HW_SCANNING, &dev->mphy.state)) {
 		struct cfg80211_scan_info info = {
 			.aborted = true,
 		};
-		// TODO: ieee80211_scan_completed must be implemented on Windows
+
 		ieee80211_scan_completed(dev->mphy.hw, &info);
 	}
 
 	dev->hw_full_reset = false;
 	pm->suspended = false;
-	// TODO: ieee80211_wake_queues must be implemented on Windows
 	ieee80211_wake_queues(hw);
-	// TODO: ieee80211_iterate_active_interfaces must be implemented on Windows
 	ieee80211_iterate_active_interfaces(hw,
 					    IEEE80211_IFACE_ITER_RESUME_ALL,
 					    mt7921_vif_connect_iter, NULL);
@@ -754,16 +707,13 @@ void mt7921_coredump_work(struct work_struct *work)
 	dev = (struct mt792x_dev *)container_of(work, struct mt792x_dev,
 						coredump.work.work);
 
-	// TODO: time_is_after_jiffies must be implemented on Windows
 	if (time_is_after_jiffies(dev->coredump.last_activity +
 				  4 * MT76_CONNAC_COREDUMP_TIMEOUT)) {
-		// TODO: queue_delayed_work must be implemented on Windows
 		queue_delayed_work(dev->mt76.wq, &dev->coredump.work,
 				   MT76_CONNAC_COREDUMP_TIMEOUT);
 		return;
 	}
 
-	// TODO: vzalloc must be implemented on Windows
 	dump = vzalloc(MT76_CONNAC_COREDUMP_SZ);
 	data = dump;
 
@@ -790,7 +740,6 @@ void mt7921_coredump_work(struct work_struct *work)
 	}
 
 	if (dump)
-		// TODO: dev_coredumpv must be implemented on Windows
 		dev_coredumpv(dev->mt76.dev, dump, MT76_CONNAC_COREDUMP_SZ,
 			      GFP_KERNEL);
 
@@ -817,7 +766,6 @@ int mt7921_usb_sdio_tx_prepare_skb(struct mt76_dev *mdev, void *txwi_ptr,
 				   struct mt76_tx_info *tx_info)
 {
 	struct mt792x_dev *dev = container_of(mdev, struct mt792x_dev, mt76);
-	// TODO: IEEE80211_SKB_CB must be implemented on Windows
 	struct ieee80211_tx_info *info = IEEE80211_SKB_CB(tx_info->skb);
 	struct ieee80211_key_conf *key = info->control.hw_key;
 	struct sk_buff *skb = tx_info->skb;
@@ -835,7 +783,7 @@ int mt7921_usb_sdio_tx_prepare_skb(struct mt76_dev *mdev, void *txwi_ptr,
 
 	if (sta) {
 		struct mt792x_sta *msta = (struct mt792x_sta *)sta->drv_priv;
-		// TODO: time_after must be implemented on Windows
+
 		if (time_after(jiffies, msta->last_txs + HZ / 4)) {
 			info->flags |= IEEE80211_TX_CTL_REQ_TX_STATUS;
 			msta->last_txs = jiffies;
@@ -854,7 +802,6 @@ int mt7921_usb_sdio_tx_prepare_skb(struct mt76_dev *mdev, void *txwi_ptr,
 	err = mt76_skb_adjust_pad(skb, pad);
 	if (err)
 		/* Release pktid in case of error. */
-		// TODO: idr_removemust be implemented on Windows
 		idr_remove(&wcid->pktid, pktid);
 
 	return err;
@@ -871,7 +818,6 @@ void mt7921_usb_sdio_tx_complete_skb(struct mt76_dev *mdev,
 	u16 idx;
 
 	idx = le32_get_bits(txwi[1], MT_TXD1_WLAN_IDX);
-	// TODO: rcu_dereference must be implemented on Windows
 	wcid = rcu_dereference(mdev->wcid[idx]);
 	sta = wcid_to_sta(wcid);
 

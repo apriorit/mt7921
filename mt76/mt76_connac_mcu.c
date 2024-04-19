@@ -118,7 +118,6 @@ int mt76_connac_mcu_set_channel_domain(struct mt76_phy *phy)
 	if (!skb)
 		return -ENOMEM;
 
-	// TODO: skb_reserve must be implemented on Windows
 	skb_reserve(skb, sizeof(hdr));
 
 	for (i = 0; i < phy->sband_2g.sband.n_channels; i++) {
@@ -130,7 +129,6 @@ int mt76_connac_mcu_set_channel_domain(struct mt76_phy *phy)
 		channel.flags = cpu_to_le32(chan->flags);
 		channel.pad = 0;
 
-		// TODO: skb_put_data must be implemented on Windows
 		skb_put_data(skb, &channel, sizeof(channel));
 		n_2ch++;
 	}
@@ -165,7 +163,6 @@ int mt76_connac_mcu_set_channel_domain(struct mt76_phy *phy)
 	hdr.n_5ch = n_5ch;
 	hdr.n_6ch = n_6ch;
 
-	// TODO: __skb_push must be implemented on Windows
 	memcpy(__skb_push(skb, sizeof(hdr)), &hdr, sizeof(hdr));
 
 	return mt76_mcu_skb_send_msg(dev, skb, MCU_CE_CMD(SET_CHAN_DOMAIN),
@@ -244,7 +241,6 @@ void mt76_connac_mcu_beacon_loss_iter(void *priv, u8 *mac,
 	if (!(vif->driver_flags & IEEE80211_VIF_BEACON_FILTER))
 		return;
 
-	// TODO: ieee80211_beacon_loss must be implemented on Windows
 	ieee80211_beacon_loss(vif);
 }
 EXPORT_SYMBOL_GPL(mt76_connac_mcu_beacon_loss_iter);
@@ -393,7 +389,6 @@ void mt76_connac_mcu_sta_basic_tlv(struct mt76_dev *dev, struct sk_buff *skb,
 
 	if (!sta) {
 		basic->conn_type = cpu_to_le32(CONNECTION_INFRA_BC);
-		// TODO: eth_broadcast_addr must be implemented on Windows
 		eth_broadcast_addr(basic->peer_addr);
 		return;
 	}
@@ -569,7 +564,6 @@ void mt76_connac_mcu_wtbl_generic_tlv(struct mt76_dev *dev,
 			memcpy(generic->peer_addr, vif->bss_conf.bssid,
 			       ETH_ALEN);
 		else
-			// TODO: eth_broadcast_addr must be implemented on Windows
 			eth_broadcast_addr(generic->peer_addr);
 
 		generic->muar_idx = 0xe;
@@ -1245,11 +1239,9 @@ int mt76_connac_mcu_sta_wed_update(struct mt76_dev *dev, struct sk_buff *skb)
 	if (!mt76_is_mmio(dev))
 		return 0;
 
-	// TODO: mtk_wed_device_active must be implemented on Windows
 	if (!mtk_wed_device_active(&dev->mmio.wed))
 		return 0;
 
-	// TODO: mtk_wed_device_update_msg must be implemented on Windows
 	return mtk_wed_device_update_msg(&dev->mmio.wed, WED_WO_STA_REC,
 					 skb->data, skb->len);
 }
@@ -1366,7 +1358,6 @@ u8 mt76_connac_get_phy_mode_ext(struct mt76_phy *phy, struct ieee80211_vif *vif,
 		mode |= PHY_MODE_AX_6G;
 
 	sband = phy->hw->wiphy->bands[band];
-	// TODO: ieee80211_get_eht_iftype_cap must be implemented on Windows
 	eht_cap = ieee80211_get_eht_iftype_cap(sband, vif->type);
 
 	if (!eht_cap || !eht_cap->has_eht || !vif->bss_conf.eht_support)
@@ -1401,7 +1392,6 @@ mt76_connac_get_he_phy_cap(struct mt76_phy *phy, struct ieee80211_vif *vif)
 
 	sband = phy->hw->wiphy->bands[band];
 
-	// TODO: ieee80211_get_he_iftype_cap must be implemented on Windows
 	return ieee80211_get_he_iftype_cap(sband, vif->type);
 }
 EXPORT_SYMBOL_GPL(mt76_connac_get_he_phy_cap);
@@ -1414,7 +1404,6 @@ mt76_connac_get_eht_phy_cap(struct mt76_phy *phy, struct ieee80211_vif *vif)
 
 	sband = phy->hw->wiphy->bands[band];
 
-	// TODO: ieee80211_get_eht_iftype_cap must be implemented on Windows
 	return ieee80211_get_eht_iftype_cap(sband, vif->type);
 }
 EXPORT_SYMBOL_GPL(mt76_connac_get_eht_phy_cap);
@@ -1479,7 +1468,6 @@ int mt76_connac_mcu_uni_set_chctx(struct mt76_phy *phy, struct mt76_vif *mvif,
 			.tag = cpu_to_le16(UNI_BSS_INFO_RLM),
 			.len = cpu_to_le16(sizeof(struct rlm_tlv)),
 			.control_channel = chandef->chan->hw_value,
-			// TODO: ieee80211_frequency_to_channel must be implemented on Windows
 			.center_chan = ieee80211_frequency_to_channel(freq1),
 			.center_chan2 = ieee80211_frequency_to_channel(freq2),
 			.tx_streams = hweight8(phy->antenna_mask),
@@ -1748,7 +1736,6 @@ int mt76_connac_mcu_hw_scan(struct mt76_phy *phy, struct ieee80211_vif *vif,
 
 	memcpy(req->bssid, sreq->bssid, ETH_ALEN);
 	if (sreq->flags & NL80211_SCAN_FLAG_RANDOM_ADDR) {
-		// TODO: get_random_mask_addr must be implemented on Windows
 		get_random_mask_addr(req->random_mac, sreq->mac_addr,
 				     sreq->mac_addr_mask);
 		req->scan_func |= SCAN_FUNC_RANDOM_MAC;
@@ -1780,7 +1767,6 @@ int mt76_connac_mcu_cancel_hw_scan(struct mt76_phy *phy,
 			.aborted = true,
 		};
 
-		// TODO: ieee80211_scan_completed must be implemented on Windows
 		ieee80211_scan_completed(phy->hw, &info);
 	}
 
@@ -1867,7 +1853,6 @@ int mt76_connac_mcu_sched_scan_req(struct mt76_phy *phy,
 
 	if (sreq->ie_len > 0) {
 		req->ie_len = cpu_to_le16(sreq->ie_len);
-		// TODO: skb_put must be implemented on Windows
 		memcpy(skb_put(skb, sreq->ie_len), sreq->ie, sreq->ie_len);
 	}
 
@@ -1947,13 +1932,11 @@ void mt76_connac_mcu_coredump_event(struct mt76_dev *dev, struct sk_buff *skb,
 				    struct mt76_connac_coredump *coredump)
 {
 	spin_lock_bh(&dev->lock);
-	// TODO: __skb_queue_tail must be implemented on Windows
 	__skb_queue_tail(&coredump->msg_list, skb);
 	spin_unlock_bh(&dev->lock);
 
 	coredump->last_activity = jiffies;
 
-	// TODO: queue_delayed_work must be implemented on Windows
 	queue_delayed_work(dev->wq, &coredump->work,
 			   MT76_CONNAC_COREDUMP_TIMEOUT);
 }
@@ -2085,7 +2068,6 @@ mt76_connac_mcu_rate_txpower_band(struct mt76_phy *phy,
 	struct mt76_power_limits *limits;
 	const u8 *ch_list;
 
-	// TODO: devm_kmalloc must be implemented on Windows
 	limits = devm_kmalloc(dev->dev, sizeof(*limits), GFP_KERNEL);
 	if (!limits)
 		return -ENOMEM;
@@ -2127,10 +2109,8 @@ mt76_connac_mcu_rate_txpower_band(struct mt76_phy *phy,
 			goto out;
 		}
 
-		// TODO: skb_reserve must be implemented on Windows
 		skb_reserve(skb, sizeof(tx_power_tlv));
 
-		// TODO: BUILD_BUG_ON must be implemented on Windows
 		BUILD_BUG_ON(sizeof(dev->alpha2) > sizeof(tx_power_tlv.alpha2));
 		memcpy(tx_power_tlv.alpha2, dev->alpha2, sizeof(dev->alpha2));
 		tx_power_tlv.n_chan = num_ch;
@@ -2179,7 +2159,6 @@ mt76_connac_mcu_rate_txpower_band(struct mt76_phy *phy,
 	}
 
 out:
-	// TODO: devm_kfree must be implemented on Windows
 	devm_kfree(dev->dev, limits);
 	return err;
 }
@@ -2346,11 +2325,8 @@ int mt76_connac_mcu_update_gtk_rekey(struct ieee80211_hw *hw,
 	gtk_tlv->rekey_mode = 2;
 	gtk_tlv->option = 1;
 
-	// TODO: rcu_read_lock must be implemented on Windows
 	rcu_read_lock();
-	// TODO: ieee80211_iter_keys_rcu must be implemented on Windows
 	ieee80211_iter_keys_rcu(hw, vif, mt76_connac_mcu_key_iter, gtk_tlv);
-	// TODO: rcu_read_unlock must be implemented on Windows
 	rcu_read_unlock();
 
 	memcpy(gtk_tlv->kek, key->kek, NL80211_KEK_LEN);
@@ -2751,12 +2727,10 @@ int mt76_connac_mcu_bss_basic_tlv(struct sk_buff *skb,
 	case NL80211_IFTYPE_MONITOR:
 		break;
 	case NL80211_IFTYPE_AP:
-		// TODO: ieee80211_hw_check must be implemented on Windows
 		if (ieee80211_hw_check(phy->hw, SUPPORTS_MULTI_BSSID)) {
 			u8 bssid_id = vif->bss_conf.bssid_indicator;
 			struct wiphy *wiphy = phy->hw->wiphy;
 
-			// TODO: ilog2 must be implemented on Windows
 			if (bssid_id > ilog2(wiphy->mbssid_max_interfaces))
 				return -EINVAL;
 
@@ -2766,10 +2740,8 @@ int mt76_connac_mcu_bss_basic_tlv(struct sk_buff *skb,
 		break;
 	case NL80211_IFTYPE_STATION:
 		if (enable) {
-			// TODO: rcu_read_lock must be implemented on Windows
 			rcu_read_lock();
 			if (!sta)
-				// TODO: ieee80211_find_sta must be implemented on Windows
 				sta = ieee80211_find_sta(vif,
 							 vif->bss_conf.bssid);
 			/* TODO: enable BSS_INFO_UAPSD & BSS_INFO_PM */
@@ -2779,7 +2751,6 @@ int mt76_connac_mcu_bss_basic_tlv(struct sk_buff *skb,
 				wcid = (struct mt76_wcid *)sta->drv_priv;
 				wlan_idx = wcid->idx;
 			}
-			// TODO: rcu_read_unlock must be implemented on Windows
 			rcu_read_unlock();
 		}
 		break;
@@ -2909,14 +2880,14 @@ mt76_connac_mcu_send_ram_firmware(struct mt76_dev *dev,
 
 		err = mt76_connac_mcu_init_download(dev, addr, len, mode);
 		if (err) {
-			// dev_err(dev->dev, "Download request failed\n"); // to remove (log)
+			dev_err(dev->dev, "Download request failed\n");
 			return err;
 		}
 
 		err = __mt76_mcu_send_firmware(dev, MCU_CMD(FW_SCATTER),
 					       data + offset, len, max_len);
 		if (err) {
-			// dev_err(dev->dev, "Failed to send firmware.\n"); // to remove (log)
+			dev_err(dev->dev, "Failed to send firmware.\n");
 			return err;
 		}
 
@@ -2939,24 +2910,23 @@ int mt76_connac2_load_ram(struct mt76_dev *dev, const char *fw_wm,
 	const struct firmware *fw;
 	int ret;
 
-	// TODO: request_firmware must be implemented on Windows
 	ret = request_firmware(&fw, fw_wm, dev->dev);
 	if (ret)
 		return ret;
 
 	if (!fw || !fw->data || fw->size < sizeof(*hdr)) {
-		// dev_err(dev->dev, "Invalid firmware\n"); // to remove (log)
+		dev_err(dev->dev, "Invalid firmware\n");
 		ret = -EINVAL;
 		goto out;
 	}
 
 	hdr = (const void *)(fw->data + fw->size - sizeof(*hdr));
-	//dev_info(dev->dev, "WM Firmware Version: %.10s, Build Time: %.15s\n",
-	//	 hdr->fw_ver, hdr->build_date); // to remove (log)
+	dev_info(dev->dev, "WM Firmware Version: %.10s, Build Time: %.15s\n",
+		 hdr->fw_ver, hdr->build_date);
 
 	ret = mt76_connac_mcu_send_ram_firmware(dev, hdr, fw->data, false);
 	if (ret) {
-		// dev_err(dev->dev, "Failed to start WM firmware\n"); // to remove (log)
+		dev_err(dev->dev, "Failed to start WM firmware\n");
 		goto out;
 	}
 
@@ -2964,30 +2934,28 @@ int mt76_connac2_load_ram(struct mt76_dev *dev, const char *fw_wm,
 		 sizeof(dev->hw->wiphy->fw_version),
 		 "%.10s-%.15s", hdr->fw_ver, hdr->build_date);
 
-	// TODO: release_firmware must be implemented on Windows
 	release_firmware(fw);
 
 	if (!fw_wa)
 		return 0;
 
-	// TODO: request_firmware must be implemented on Windows
 	ret = request_firmware(&fw, fw_wa, dev->dev);
 	if (ret)
 		return ret;
 
 	if (!fw || !fw->data || fw->size < sizeof(*hdr)) {
-		// dev_err(dev->dev, "Invalid firmware\n"); // to remove (log)
+		dev_err(dev->dev, "Invalid firmware\n");
 		ret = -EINVAL;
 		goto out;
 	}
 
 	hdr = (const void *)(fw->data + fw->size - sizeof(*hdr));
-	//dev_info(dev->dev, "WA Firmware Version: %.10s, Build Time: %.15s\n",
-	//	 hdr->fw_ver, hdr->build_date); // to remove (log)
+	dev_info(dev->dev, "WA Firmware Version: %.10s, Build Time: %.15s\n",
+		 hdr->fw_ver, hdr->build_date);
 
 	ret = mt76_connac_mcu_send_ram_firmware(dev, hdr, fw->data, true);
 	if (ret) {
-		// dev_err(dev->dev, "Failed to start WA firmware\n"); // to remove (log)
+		dev_err(dev->dev, "Failed to start WA firmware\n");
 		goto out;
 	}
 
@@ -2996,7 +2964,6 @@ int mt76_connac2_load_ram(struct mt76_dev *dev, const char *fw_wm,
 		 "%.10s-%.15s", hdr->fw_ver, hdr->build_date);
 
 out:
-	// TODO: release_firmware must be implemented on Windows
 	release_firmware(fw);
 
 	return ret;
@@ -3025,7 +2992,7 @@ static u32 mt76_connac2_get_data_mode(struct mt76_dev *dev, u32 info)
 		mode |= DL_MODE_RESET_SEC_IV;
 		break;
 	default:
-		// dev_err(dev->dev, "Encryption type not support!\n"); // to remove (log)
+		dev_err(dev->dev, "Encryption type not support!\n");
 	}
 
 	return mode;
@@ -3044,26 +3011,24 @@ int mt76_connac2_load_patch(struct mt76_dev *dev, const char *fw_name)
 	case PATCH_NOT_DL_SEM_SUCCESS:
 		break;
 	default:
-		// dev_err(dev->dev, "Failed to get patch semaphore\n"); // to remove (log)
+		dev_err(dev->dev, "Failed to get patch semaphore\n");
 		return -EAGAIN;
 	}
 
-	// TODO: request_firmware must be implemented on Windows
 	ret = request_firmware(&fw, fw_name, dev->dev);
 	if (ret)
 		goto out;
 
 	if (!fw || !fw->data || fw->size < sizeof(*hdr)) {
-		// dev_err(dev->dev, "Invalid firmware\n"); // to remove (log)
+		dev_err(dev->dev, "Invalid firmware\n");
 		ret = -EINVAL;
 		goto out;
 	}
 
 	hdr = (const void *)fw->data;
-	//dev_info(dev->dev, "HW/SW Version: 0x%x, Build Time: %.16s\n",
-	//	 be32_to_cpu(hdr->hw_sw_ver), hdr->build_date); // to remove (log)
+	dev_info(dev->dev, "HW/SW Version: 0x%x, Build Time: %.16s\n",
+		 be32_to_cpu(hdr->hw_sw_ver), hdr->build_date);
 
-	// TODO: be32_to_cpu must be implemented on Windows
 	for (i = 0; i < be32_to_cpu(hdr->desc.n_region); i++) {
 		struct mt76_connac2_patch_sec *sec;
 		u32 len, addr, mode;
@@ -3085,21 +3050,21 @@ int mt76_connac2_load_patch(struct mt76_dev *dev, const char *fw_name)
 
 		ret = mt76_connac_mcu_init_download(dev, addr, len, mode);
 		if (ret) {
-			// dev_err(dev->dev, "Download request failed\n"); // to remove (log)
+			dev_err(dev->dev, "Download request failed\n");
 			goto out;
 		}
 
 		ret = __mt76_mcu_send_firmware(dev, MCU_CMD(FW_SCATTER),
 					       dl, len, max_len);
 		if (ret) {
-			// dev_err(dev->dev, "Failed to send patch\n"); // to remove (log)
+			dev_err(dev->dev, "Failed to send patch\n");
 			goto out;
 		}
 	}
 
 	ret = mt76_connac_mcu_start_patch(dev);
 	if (ret)
-		// dev_err(dev->dev, "Failed to start patch\n"); // to remove (log)
+		dev_err(dev->dev, "Failed to start patch\n");
 
 out:
 	sem = mt76_connac_mcu_patch_sem_ctrl(dev, false);
@@ -3108,11 +3073,10 @@ out:
 		break;
 	default:
 		ret = -EAGAIN;
-		// dev_err(dev->dev, "Failed to release patch semaphore\n"); // to remove (log)
+		dev_err(dev->dev, "Failed to release patch semaphore\n");
 		break;
 	}
 
-	// TODO: release_firmware must be implemented on Windows
 	release_firmware(fw);
 
 	return ret;

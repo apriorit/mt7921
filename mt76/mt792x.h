@@ -211,7 +211,6 @@ mt792x_hw_dev(struct ieee80211_hw *hw)
 {
 	struct mt76_phy *phy = hw->priv;
 
-	// TODO: container_of must be implemented on Windows
 	return container_of(phy->dev, struct mt792x_dev, mt76);
 }
 
@@ -234,7 +233,6 @@ mt792x_get_status_freq_info(struct mt76_rx_status *status, u8 chfreq)
 	} else {
 		status->band = NL80211_BAND_2GHZ;
 	}
-	// TODO: ieee80211_channel_to_frequency must be implemented on Windows
 	status->freq = ieee80211_channel_to_frequency(chfreq, status->band);
 }
 

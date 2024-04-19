@@ -83,7 +83,7 @@ int mt792xu_mcu_power_on(struct mt792x_dev *dev)
 
 	if (!mt76_poll_msec(dev, MT_CONN_ON_MISC, MT_TOP_MISC2_FW_PWR_ON,
 			    MT_TOP_MISC2_FW_PWR_ON, 500)) {
-		//dev_err(dev->mt76.dev, "Timeout for power on\n"); // to remove (log)
+		dev_err(dev->mt76.dev, "Timeout for power on\n");
 		ret = -EIO;
 	}
 
@@ -259,7 +259,6 @@ int mt792xu_wfsys_reset(struct mt792x_dev *dev)
 		if (val & MT_UDMA_CONN_WFSYS_INIT_DONE)
 			break;
 
-		// TODO: msleep must be implemented on Windows
 		msleep(100);
 	}
 
@@ -274,9 +273,7 @@ int mt792xu_init_reset(struct mt792x_dev *dev)
 {
 	set_bit(MT76_RESET, &dev->mphy.state);
 
-	// TODO: wake_up must be implemented on Windows
 	wake_up(&dev->mt76.mcu.wait);
-	// TODO: skb_queue_purge must be implemented on Windows
 	skb_queue_purge(&dev->mt76.mcu.res_q);
 
 	mt76u_stop_rx(&dev->mt76);
@@ -301,10 +298,8 @@ EXPORT_SYMBOL_GPL(mt792xu_stop);
 
 void mt792xu_disconnect(struct usb_interface *usb_intf)
 {
-	// TODO: usb_get_intfdata must be implemented on Windows
 	struct mt792x_dev *dev = usb_get_intfdata(usb_intf);
 
-	// TODO: cancel_work_sync must be implemented on Windows
 	cancel_work_sync(&dev->init_work);
 	if (!test_bit(MT76_STATE_INITIALIZED, &dev->mphy.state))
 		return;
@@ -312,9 +307,7 @@ void mt792xu_disconnect(struct usb_interface *usb_intf)
 	mt76_unregister_device(&dev->mt76);
 	mt792xu_cleanup(dev);
 
-	// TODO: usb_set_intfdata must be implemented on Windows
 	usb_set_intfdata(usb_intf, NULL);
-	// TODO: interface_to_usbdev must be implemented on Windows
 	usb_put_dev(interface_to_usbdev(usb_intf));
 
 	mt76_free_device(&dev->mt76);

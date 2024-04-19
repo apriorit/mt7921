@@ -4,9 +4,6 @@
  */
 #include "mt76.h"
 
-// this file can be deleted because it is designed to work with the host file system
-
-// to remove
 static int
 mt76_reg_set(void *data, u64 val)
 {
@@ -16,7 +13,6 @@ mt76_reg_set(void *data, u64 val)
 	return 0;
 }
 
-// to remove
 static int
 mt76_reg_get(void *data, u64 *val)
 {
@@ -26,11 +22,9 @@ mt76_reg_get(void *data, u64 *val)
 	return 0;
 }
 
-// to remove
 DEFINE_DEBUGFS_ATTRIBUTE(fops_regval, mt76_reg_get, mt76_reg_set,
 			 "0x%08llx\n");
 
-// to remove
 static int
 mt76_napi_threaded_set(void *data, u64 val)
 {
@@ -45,7 +39,6 @@ mt76_napi_threaded_set(void *data, u64 val)
 	return 0;
 }
 
-// to remove
 static int
 mt76_napi_threaded_get(void *data, u64 *val)
 {
@@ -55,11 +48,9 @@ mt76_napi_threaded_get(void *data, u64 *val)
 	return 0;
 }
 
-// to remove
 DEFINE_DEBUGFS_ATTRIBUTE(fops_napi_threaded, mt76_napi_threaded_get,
 			 mt76_napi_threaded_set, "%llu\n");
 
-// to remove
 int mt76_queues_read(struct seq_file *s, void *data)
 {
 	struct mt76_dev *dev = dev_get_drvdata(s->private);
@@ -80,7 +71,6 @@ int mt76_queues_read(struct seq_file *s, void *data)
 }
 EXPORT_SYMBOL_GPL(mt76_queues_read);
 
-// to remove
 static int mt76_rx_queues_read(struct seq_file *s, void *data)
 {
 	struct mt76_dev *dev = dev_get_drvdata(s->private);
@@ -98,7 +88,6 @@ static int mt76_rx_queues_read(struct seq_file *s, void *data)
 	return 0;
 }
 
-// to remove
 void mt76_seq_puts_array(struct seq_file *file, const char *str,
 			 s8 *val, int len)
 {
@@ -111,7 +100,6 @@ void mt76_seq_puts_array(struct seq_file *file, const char *str,
 }
 EXPORT_SYMBOL_GPL(mt76_seq_puts_array);
 
-// to remove
 struct dentry *
 mt76_register_debugfs_fops(struct mt76_phy *phy,
 			   const struct file_operations *ops)

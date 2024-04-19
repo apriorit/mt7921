@@ -49,7 +49,6 @@ mt7921u_mcu_send_message(struct mt76_dev *mdev, struct sk_buff *skb,
 
 	ret = mt76u_bulk_msg(&dev->mt76, skb->data, skb->len, NULL,
 			     1000, ep);
-	// TODO: dev_kfree_skb must be implemented on Windows	
 	dev_kfree_skb(skb);
 
 	return ret;
@@ -88,7 +87,7 @@ static int mt7921u_mac_reset(struct mt792x_dev *dev)
 
 	set_bit(MT76_RESET, &dev->mphy.state);
 	set_bit(MT76_MCU_RESET, &dev->mphy.state);
-	// TODO: wake_up must be implemented on Windows	
+
 	wake_up(&dev->mt76.mcu.wait);
 	skb_queue_purge(&dev->mt76.mcu.res_q);
 
@@ -191,11 +190,9 @@ static int mt7921u_probe(struct usb_interface *usb_intf,
 	dev->fw_features = features;
 	dev->hif_ops = &hif_ops;
 
-	// TODO: usb_get_dev must be implemented on Windows	
 	udev = usb_get_dev(udev);
-	// TODO: usb_reset_device must be implemented on Windows			
 	usb_reset_device(udev);
-	// TODO: usb_set_intfdata must be implemented on Windows	
+
 	usb_set_intfdata(usb_intf, dev);
 
 	ret = __mt76u_init(mdev, usb_intf, &bus_ops);
@@ -204,7 +201,6 @@ static int mt7921u_probe(struct usb_interface *usb_intf,
 
 	mdev->rev = (mt76_rr(dev, MT_HW_CHIPID) << 16) |
 		    (mt76_rr(dev, MT_HW_REV) & 0xff);
-	// TODO: dev_dbg must be implemented on Windows	
 	dev_dbg(mdev->dev, "ASIC revision: %04x\n", mdev->rev);
 
 	if (mt76_get_field(dev, MT_CONN_ON_MISC, MT_TOP_MISC2_FW_N9_RDY)) {
@@ -241,9 +237,8 @@ static int mt7921u_probe(struct usb_interface *usb_intf,
 
 error:
 	mt76u_queues_deinit(&dev->mt76);
-	// TODO: usb_set_intfdata must be implemented on Windows	
+
 	usb_set_intfdata(usb_intf, NULL);
-	// TODO: usb_put_dev must be implemented on Windows	
 	usb_put_dev(interface_to_usbdev(usb_intf));
 
 	mt76_free_device(&dev->mt76);
@@ -254,13 +249,11 @@ error:
 #ifdef CONFIG_PM
 static int mt7921u_suspend(struct usb_interface *intf, pm_message_t state)
 {
-	// TODO: usb_get_intfdata must be implemented on Windows	
 	struct mt792x_dev *dev = usb_get_intfdata(intf);
 	struct mt76_connac_pm *pm = &dev->pm;
 	int err;
 
 	pm->suspended = true;
-	// TODO: flush_work must be implemented on Windows	
 	flush_work(&dev->reset_work);
 
 	err = mt76_connac_mcu_set_hif_suspend(&dev->mt76, true);
@@ -269,7 +262,7 @@ static int mt7921u_suspend(struct usb_interface *intf, pm_message_t state)
 
 	mt76u_stop_rx(&dev->mt76);
 	mt76u_stop_tx(&dev->mt76);
-	
+
 	return 0;
 
 failed:
@@ -283,7 +276,6 @@ failed:
 
 static int mt7921u_resume(struct usb_interface *intf)
 {
-	// TODO: usb_get_intfdata must be implemented on Windows 
 	struct mt792x_dev *dev = usb_get_intfdata(intf);
 	struct mt76_connac_pm *pm = &dev->pm;
 	bool reinit = true;
@@ -300,7 +292,7 @@ static int mt7921u_resume(struct usb_interface *intf)
 			mt76_wr(dev, MT_WF_SW_DEF_CR_USB_MCU_EVENT, 0);
 			break;
 		}
-		// TODO: msleep must be implemented on Windows 
+
 		msleep(20);
 	}
 

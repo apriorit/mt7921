@@ -50,11 +50,9 @@ static int mt7921_thermal_init(struct mt792x_phy *phy)
 	if (!IS_REACHABLE(CONFIG_HWMON))
 		return 0;
 
-	// TODO: devm_kasprintf must be implemented on Windows
 	name = devm_kasprintf(&wiphy->dev, GFP_KERNEL, "mt7921_%s",
 			      wiphy_name(wiphy));
 
-	// TODO: devm_hwmon_device_register_with_groups must be implemented on Windows
 	hwmon = devm_hwmon_device_register_with_groups(&wiphy->dev, name, phy,
 						       mt7921_hwmon_groups);
 	return PTR_ERR_OR_ZERO(hwmon);
@@ -74,7 +72,6 @@ mt7921_regd_channel_update(struct wiphy *wiphy, struct mt792x_dev *dev)
 	np = mt76_find_power_limits_node(mdev);
 
 	sband = wiphy->bands[NL80211_BAND_5GHZ];
-	// TODO: of_get_child_by_name must be implemented on Windows
 	band_np = np ? of_get_child_by_name(np, "txpower-5g") : NULL;
 	for (i = 0; i < sband->n_channels; i++) {
 		ch = &sband->channels[i];
@@ -94,7 +91,6 @@ mt7921_regd_channel_update(struct wiphy *wiphy, struct mt792x_dev *dev)
 	if (!sband)
 		return;
 
-	// TODO: of_get_child_by_name must be implemented on Windows
 	band_np = np ? of_get_child_by_name(np, "txpower-6g") : NULL;
 	for (i = 0; i < sband->n_channels; i++) {
 		ch = &sband->channels[i];
@@ -131,7 +127,6 @@ static void
 mt7921_regd_notifier(struct wiphy *wiphy,
 		     struct regulatory_request *request)
 {
-	// TODO: wiphy_to_ieee80211_hw need to implement on Windows
 	struct ieee80211_hw *hw = wiphy_to_ieee80211_hw(wiphy);
 	struct mt792x_dev *dev = mt792x_hw_dev(hw);
 	struct mt76_connac_pm *pm = &dev->pm;
@@ -206,7 +201,7 @@ static int mt7921_init_hardware(struct mt792x_dev *dev)
 	}
 
 	if (i == MT792x_MCU_INIT_RETRY_COUNT) {
-		//dev_err(dev->mt76.dev, "hardware init failed\n");
+		dev_err(dev->mt76.dev, "hardware init failed\n");
 		return ret;
 	}
 
@@ -229,19 +224,19 @@ static void mt7921_init_work(struct work_struct *work)
 	ret = mt76_register_device(&dev->mt76, true, mt76_rates,
 				   ARRAY_SIZE(mt76_rates));
 	if (ret) {
-		//dev_err(dev->mt76.dev, "register device failed\n");
+		dev_err(dev->mt76.dev, "register device failed\n");
 		return;
 	}
 
 	ret = mt7921_init_debugfs(dev);
 	if (ret) {
-		//dev_err(dev->mt76.dev, "register debugfs failed\n");
+		dev_err(dev->mt76.dev, "register debugfs failed\n");
 		return;
 	}
 
 	ret = mt7921_thermal_init(&dev->phy);
 	if (ret) {
-		//dev_err(dev->mt76.dev, "thermal init failed\n");
+		dev_err(dev->mt76.dev, "thermal init failed\n");
 		return;
 	}
 
@@ -261,48 +256,29 @@ int mt7921_register_device(struct mt792x_dev *dev)
 	dev->mt76.phy.priv = &dev->phy;
 	dev->mt76.tx_worker.fn = mt792x_tx_worker;
 
-	// TODO: INIT_DELAYED_WORK must be implemented on Windows
 	INIT_DELAYED_WORK(&dev->pm.ps_work, mt792x_pm_power_save_work);
-	// TODO: INIT_WORK must be implemented on Windows
 	INIT_WORK(&dev->pm.wake_work, mt792x_pm_wake_work);
-	// TODO: spin_lock_init must be implemented on Windows
 	spin_lock_init(&dev->pm.wake.lock);
-	// TODO: mutex_init must be implemented on Windows
 	mutex_init(&dev->pm.mutex);
-	// TODO: init_waitqueue_head must be implemented on Windows
 	init_waitqueue_head(&dev->pm.wait);
 	if (mt76_is_sdio(&dev->mt76))
-		// TODO: init_waitqueue_head must be implemented on Windows
 		init_waitqueue_head(&dev->mt76.sdio.wait);
-	// TODO: spin_lock_init must be implemented on Windows
 	spin_lock_init(&dev->pm.txq_lock);
-	// TODO: INIT_DELAYED_WORK must be implemented on Windows
 	INIT_DELAYED_WORK(&dev->mphy.mac_work, mt792x_mac_work);
-	// TODO: INIT_DELAYED_WORK must be implemented on Windows
 	INIT_DELAYED_WORK(&dev->phy.scan_work, mt7921_scan_work);
-	// TODO: INIT_DELAYED_WORK must be implemented on Windows
 	INIT_DELAYED_WORK(&dev->coredump.work, mt7921_coredump_work);
 #if IS_ENABLED(CONFIG_IPV6)
-	// TODO: INIT_WORK must be implemented on Windows
 	INIT_WORK(&dev->ipv6_ns_work, mt7921_set_ipv6_ns_work);
-	// TODO: skb_queue_head_init must be implemented on Windows
 	skb_queue_head_init(&dev->ipv6_ns_list);
 #endif
-	// TODO: skb_queue_head_init must be implemented on Windows
 	skb_queue_head_init(&dev->phy.scan_event_list);
-	// TODO: skb_queue_head_init must be implemented on Windows
 	skb_queue_head_init(&dev->coredump.msg_list);
 
-	// TODO: INIT_WORK must be implemented on Windows
 	INIT_WORK(&dev->reset_work, mt7921_mac_reset_work);
-	// TODO: INIT_WORK must be implemented on Windows
 	INIT_WORK(&dev->init_work, mt7921_init_work);
 
-	// TODO: INIT_WORK must be implemented on Windows
 	INIT_WORK(&dev->phy.roc_work, mt7921_roc_work);
-	// TODO: timer_setup must be implemented on Windows
 	timer_setup(&dev->phy.roc_timer, mt792x_roc_timer, 0);
-	// TODO: init_waitqueue_head must be implemented on Windows
 	init_waitqueue_head(&dev->phy.roc_wait);
 
 	dev->pm.idle_timeout = MT792x_PM_TIMEOUT;
@@ -349,7 +325,6 @@ int mt7921_register_device(struct mt792x_dev *dev)
 	dev->mphy.hw->wiphy->available_antennas_rx = dev->mphy.chainmask;
 	dev->mphy.hw->wiphy->available_antennas_tx = dev->mphy.chainmask;
 
-	// TODO: queue_work must be implemented on Windows
 	queue_work(system_wq, &dev->init_work);
 
 	return 0;

@@ -23,8 +23,8 @@ int mt7921_mcu_parse_response(struct mt76_dev *mdev, int cmd,
 	int ret = 0;
 
 	if (!skb) {
-		//dev_err(mdev->dev, "Message %08x (seq %d) timeout\n",
-		//	cmd, seq);
+		dev_err(mdev->dev, "Message %08x (seq %d) timeout\n",
+			cmd, seq);
 		mt792x_reset(mdev);
 
 		return -ETIMEDOUT;
@@ -147,14 +147,11 @@ mt7921_mcu_uni_roc_event(struct mt792x_dev *dev, struct sk_buff *skb)
 	WARN_ON_ONCE((le16_to_cpu(grant->tag) != UNI_EVENT_ROC_GRANT));
 
 	if (grant->reqtype == MT7921_ROC_REQ_ROC)
-		// TODO: ieee80211_ready_on_channel must be implemented on Windows
 		ieee80211_ready_on_channel(dev->mt76.phy.hw);
 
 	dev->phy.roc_grant = true;
-	// TODO: wake_up must be implemented on Windows	
 	wake_up(&dev->phy.roc_wait);
 	duration = le32_to_cpu(grant->max_interval);
-	// TODO: mod_timer must be implemented on Windows	
 	mod_timer(&dev->phy.roc_timer,
 		  jiffies + msecs_to_jiffies(duration));
 }
@@ -169,7 +166,6 @@ mt7921_mcu_scan_event(struct mt792x_dev *dev, struct sk_buff *skb)
 	__skb_queue_tail(&phy->scan_event_list, skb);
 	spin_unlock_bh(&dev->mt76.lock);
 
-	// TODO: ieee80211_queue_delayed_work must be implemented on Windows	
 	ieee80211_queue_delayed_work(mphy->hw, &phy->scan_work,
 				     MT792x_HW_SCAN_TIMEOUT);
 }
@@ -187,7 +183,7 @@ mt7921_mcu_connection_loss_iter(void *priv, u8 *mac,
 	if (!(vif->driver_flags & IEEE80211_VIF_BEACON_FILTER) ||
 	    vif->type != NL80211_IFTYPE_STATION)
 		return;
-	// TODO: ieee80211_connection_loss must be implemented on Windows	
+
 	ieee80211_connection_loss(vif);
 }
 
@@ -199,7 +195,7 @@ mt7921_mcu_connection_loss_event(struct mt792x_dev *dev, struct sk_buff *skb)
 
 	skb_pull(skb, sizeof(struct mt76_connac2_mcu_rxd));
 	event = (struct mt76_connac_beacon_loss_event *)skb->data;
-	// TODO: ieee80211_iterate_active_interfaces_atomic must be implemented on Windows	
+
 	ieee80211_iterate_active_interfaces_atomic(mphy->hw,
 					IEEE80211_IFACE_ITER_RESUME_ALL,
 					mt7921_mcu_connection_loss_iter, event);
@@ -228,7 +224,6 @@ mt7921_mcu_debug_msg_event(struct mt792x_dev *dev, struct sk_buff *skb)
 			if (!msg->content[i])
 				msg->content[i] = ' ';
 		}
-		// TODO: wiphy_info must be implemented on Windows	
 		wiphy_info(mt76_hw(dev)->wiphy, "%.*s", len, msg->content);
 	}
 }
@@ -289,7 +284,6 @@ mt7921_mcu_rx_unsolicited_event(struct mt792x_dev *dev, struct sk_buff *skb)
 	default:
 		break;
 	}
-	// TODO: dev_kfree_skb must be implemented on Windows	
 	dev_kfree_skb(skb);
 }
 
@@ -308,14 +302,13 @@ mt7921_mcu_uni_rx_unsolicited_event(struct mt792x_dev *dev,
 	default:
 		break;
 	}
-	// TODO: dev_kfree_skb must be implemented on Windows	
 	dev_kfree_skb(skb);
 }
 
 void mt7921_mcu_rx_event(struct mt792x_dev *dev, struct sk_buff *skb)
 {
 	struct mt76_connac2_mcu_rxd *rxd;
-	// TODO: skb_linearize must be implemented on Windows	
+
 	if (skb_linearize(skb))
 		return;
 
@@ -394,13 +387,12 @@ static int mt7921_load_clc(struct mt792x_dev *dev, const char *fw_name)
 		hw_encap = u8_get_bits(hw_encap, MT_EE_HW_TYPE_ENCAP);
 	}
 
-	// TODO: request_firmware must be implemented on Windows	
 	ret = request_firmware(&fw, fw_name, mdev->dev);
 	if (ret)
 		return ret;
 
 	if (!fw || !fw->data || fw->size < sizeof(*hdr)) {
-		//dev_err(mdev->dev, "Invalid firmware\n");
+		dev_err(mdev->dev, "Invalid firmware\n");
 		ret = -EINVAL;
 		goto out;
 	}
@@ -413,7 +405,7 @@ static int mt7921_load_clc(struct mt792x_dev *dev, const char *fw_name)
 
 		/* check if we have valid buffer size */
 		if (offset + len > fw->size) {
-			//dev_err(mdev->dev, "Invalid firmware region\n");
+			dev_err(mdev->dev, "Invalid firmware region\n");
 			ret = -EINVAL;
 			goto out;
 		}
@@ -440,7 +432,7 @@ static int mt7921_load_clc(struct mt792x_dev *dev, const char *fw_name)
 		if (clc->idx == MT7921_CLC_POWER &&
 		    u8_get_bits(clc->type, MT_EE_HW_TYPE_ENCAP) != hw_encap)
 			continue;
-		// TODO: devm_kmemdup must be implemented on Windows	
+
 		phy->clc[clc->idx] = devm_kmemdup(mdev->dev, clc,
 						  le32_to_cpu(clc->len),
 						  GFP_KERNEL);
@@ -452,7 +444,6 @@ static int mt7921_load_clc(struct mt792x_dev *dev, const char *fw_name)
 	}
 	ret = mt7921_mcu_set_clc(dev, "00", ENVIRON_INDOOR);
 out:
-	// TODO: release_firmware must be implemented on Windows	
 	release_firmware(fw);
 
 	return ret;
@@ -576,7 +567,6 @@ static int mt7921_mcu_get_nic_capability(struct mt792x_phy *mphy)
 		skb_pull(skb, len);
 	}
 out:
-	// TODO: dev_kfree_skb must be implemented on Windows	
 	dev_kfree_skb(skb);
 
 	return ret;
@@ -848,7 +838,6 @@ int mt7921_mcu_set_chan_info(struct mt792x_phy *phy, int cmd)
 		req.switch_reason = CH_SWITCH_NORMAL;
 	else if (dev->mt76.hw->conf.flags & IEEE80211_CONF_OFFCHANNEL)
 		req.switch_reason = CH_SWITCH_SCAN_BYPASS_DPD;
-	// TODO: cfg80211_reg_can_beacon must be implemented on Windows	
 	else if (!cfg80211_reg_can_beacon(dev->mt76.hw->wiphy, chandef,
 					  NL80211_IFTYPE_AP))
 		req.switch_reason = CH_SWITCH_DFS;
@@ -860,7 +849,7 @@ int mt7921_mcu_set_chan_info(struct mt792x_phy *phy, int cmd)
 
 	if (chandef->width == NL80211_CHAN_WIDTH_80P80) {
 		int freq2 = chandef->center_freq2;
-		// TODO: ieee80211_frequency_to_channel must be implemented on Windows	
+
 		req.center_ch2 = ieee80211_frequency_to_channel(freq2);
 	}
 
@@ -1071,7 +1060,6 @@ int mt7921_get_txpwr_info(struct mt792x_dev *dev, struct mt7921_txpwr *txpwr)
 	WARN_ON(skb->len != le16_to_cpu(event->len));
 	memcpy(txpwr, &event->txpwr, sizeof(event->txpwr));
 
-	// TODO: ieee80211_remain_on_channel_expired must be implemented on Windows	
 	dev_kfree_skb(skb);
 
 	return 0;
@@ -1154,7 +1142,6 @@ int mt7921_mcu_config_sniffer(struct mt792x_vif *vif,
 			.tag = cpu_to_le16(1),
 			.len = cpu_to_le16(sizeof(req.tlv)),
 			.control_ch = chandef->chan->hw_value,
-			// TODO: ieee80211_frequency_to_channel must be implemented on Windows	
 			.center_ch = ieee80211_frequency_to_channel(freq1),
 			.drop_err = 1,
 		},
@@ -1165,7 +1152,6 @@ int mt7921_mcu_config_sniffer(struct mt792x_vif *vif,
 		req.tlv.bw = ch_width[chandef->width];
 
 	if (freq2)
-		// TODO: ieee80211_frequency_to_channel must be implemented on Windows	
 		req.tlv.center_ch2 = ieee80211_frequency_to_channel(freq2);
 
 	if (req.tlv.control_ch < req.tlv.center_ch)
@@ -1220,20 +1206,19 @@ mt7921_mcu_uni_add_beacon_offload(struct mt792x_dev *dev,
 		},
 	};
 	struct sk_buff *skb;
-	
+
 	/* support enable/update process only
 	 * disable flow would be handled in bss stop handler automatically
 	 */
 	if (!enable)
 		return -EOPNOTSUPP;
-		// TODO: ieee80211_beacon_get_template must be implemented on Windows	
+
 	skb = ieee80211_beacon_get_template(mt76_hw(dev), vif, &offs, 0);
 	if (!skb)
 		return -EINVAL;
 
 	if (skb->len > 512 - MT_TXD_SIZE) {
-		//dev_err(dev->mt76.dev, "beacon size limit exceed\n");
-		// TODO: dev_kfree_skb must be implemented on Windows	
+		dev_err(dev->mt76.dev, "beacon size limit exceed\n");
 		dev_kfree_skb(skb);
 		return -EINVAL;
 	}
@@ -1250,7 +1235,6 @@ mt7921_mcu_uni_add_beacon_offload(struct mt792x_dev *dev,
 		csa_offs = MT_TXD_SIZE + offs.cntdwn_counter_offs[0] - 4;
 		req.beacon_tlv.csa_ie_pos = cpu_to_le16(csa_offs);
 	}
-	// TODO: dev_kfree_skb must be implemented on Windows		
 	dev_kfree_skb(skb);
 
 	return mt76_mcu_send_msg(&dev->mt76, MCU_UNI_CMD(BSS_INFO_UPDATE),
@@ -1335,7 +1319,6 @@ int __mt7921_mcu_set_clc(struct mt792x_dev *dev, u8 *alpha2,
 
 			info = (struct mt7921_clc_info_tlv *)(ret_skb->data + 4);
 			dev->phy.clc_chan_conf = info->chan_conf;
-			// TODO: dev_kfree_skb must be implemented on Windows		
 			dev_kfree_skb(ret_skb);
 		}
 

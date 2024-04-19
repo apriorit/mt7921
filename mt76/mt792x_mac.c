@@ -27,7 +27,6 @@ void mt792x_mac_work(struct work_struct *work)
 	mt792x_mutex_release(phy->dev);
 
 	mt76_tx_status_check(mphy->dev, false);
-	// TODO: ieee80211_queue_delayed_work must be implemented on Windows
 	ieee80211_queue_delayed_work(phy->mt76->hw, &mphy->mac_work,
 				     MT792x_WATCHDOG_TIME);
 }
@@ -50,7 +49,6 @@ void mt792x_mac_set_timeing(struct mt792x_phy *phy)
 
 	mt76_set(dev, MT_ARB_SCR(0),
 		 MT_ARB_SCR_TX_DISABLE | MT_ARB_SCR_RX_DISABLE);
-	// TODO: udelay must be implemented on Windows
 	udelay(1);
 
 	offset = 3 * coverage_class;
@@ -146,7 +144,6 @@ struct mt76_wcid *mt792x_rx_get_wcid(struct mt792x_dev *dev, u16 idx,
 	if (idx >= ARRAY_SIZE(dev->mt76.wcid))
 		return NULL;
 
-	// TODO: rcu_dereference must be implemented on Windows
 	wcid = rcu_dereference(dev->mt76.wcid[idx]);
 	if (unicast || !wcid)
 		return wcid;
@@ -173,11 +170,9 @@ mt792x_mac_rssi_iter(void *priv, u8 *mac, struct ieee80211_vif *vif)
 	if (status->signal > 0)
 		return;
 
-	// TODO: ether_addr_equal must be implemented on Windows
 	if (!ether_addr_equal(vif->addr, hdr->addr1))
 		return;
 
-	// TODO: ewma_rssi_add must be implemented on Windows
 	ewma_rssi_add(&mvif->rssi, -status->signal);
 }
 
@@ -185,13 +180,10 @@ void mt792x_mac_assoc_rssi(struct mt792x_dev *dev, struct sk_buff *skb)
 {
 	struct ieee80211_hdr *hdr = mt76_skb_get_hdr(skb);
 
-	// TODO: ieee80211_is_assoc_resp must be implemented on Windows
 	if (!ieee80211_is_assoc_resp(hdr->frame_control) &&
-		// TODO: ieee80211_is_auth must be implemented on Windows
 	    !ieee80211_is_auth(hdr->frame_control))
 		return;
 
-	// TODO: ieee80211_iterate_active_interfaces_atomic must be implemented on Windows
 	ieee80211_iterate_active_interfaces_atomic(mt76_hw(dev),
 		IEEE80211_IFACE_ITER_RESUME_ALL,
 		mt792x_mac_rssi_iter, skb);
@@ -287,7 +279,6 @@ void mt792x_reset(struct mt76_dev *mdev)
 	if (pm->suspended)
 		return;
 
-	// TODO: queue_work must be implemented on Windows
 	queue_work(dev->mt76.wq, &dev->reset_work);
 }
 EXPORT_SYMBOL_GPL(mt792x_reset);
@@ -346,12 +337,10 @@ void mt792x_pm_wake_work(struct work_struct *work)
 			mt76_connac_tx_cleanup(mdev);
 		}
 		if (test_bit(MT76_STATE_RUNNING, &mphy->state))
-			// TODO: ieee80211_queue_delayed_work must be implemented on Windows
 			ieee80211_queue_delayed_work(mphy->hw, &mphy->mac_work,
 						     MT792x_WATCHDOG_TIME);
 	}
 
-	// TODO: ieee80211_wake_queues must be implemented on Windows
 	ieee80211_wake_queues(mphy->hw);
 	wake_up(&dev->pm.wait);
 }
@@ -373,7 +362,6 @@ void mt792x_pm_power_save_work(struct work_struct *work)
 	    dev->fw_assert)
 		goto out;
 
-	// TODO: mutex_is_locked must be implemented on Windows
 	if (mutex_is_locked(&dev->mt76.mutex))
 		/* if mt76 mutex is held we should not put the device
 		 * to sleep since we are currently accessing device
@@ -382,19 +370,16 @@ void mt792x_pm_power_save_work(struct work_struct *work)
 		 */
 		goto out;
 
-	// TODO: time_is_after_jiffies must be implemented on Windows
 	if (time_is_after_jiffies(dev->pm.last_activity + delta)) {
 		delta = dev->pm.last_activity + delta - jiffies;
 		goto out;
 	}
 
 	if (!mt792x_mcu_fw_pmctrl(dev)) {
-		// TODO: cancel_delayed_work_sync must be implemented on Windows
 		cancel_delayed_work_sync(&mphy->mac_work);
 		return;
 	}
 out:
-	// TODO: queue_delayed_work must be implemented on Windows
 	queue_delayed_work(dev->mt76.wq, &dev->pm.ps_work, delta);
 }
 EXPORT_SYMBOL_GPL(mt792x_pm_power_save_work);
