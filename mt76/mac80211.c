@@ -479,104 +479,6 @@ mt76_phy_init(struct mt76_phy *phy, struct ieee80211_hw *hw)
 	return 0;
 }
 
-struct mt76_phy *
-mt76_alloc_phy(struct mt76_dev *dev, unsigned int size,
-	       const struct ieee80211_ops *ops, u8 band_idx)
-{
-	struct ieee80211_hw *hw;
-	unsigned int phy_size;
-	struct mt76_phy *phy;
-
-	phy_size = ALIGN(sizeof(*phy), 8);
-	hw = ieee80211_alloc_hw(size + phy_size, ops);
-	if (!hw)
-		return NULL;
-
-	phy = hw->priv;
-	phy->dev = dev;
-	phy->hw = hw;
-	phy->priv = hw->priv + phy_size;
-	phy->band_idx = band_idx;
-
-	hw->wiphy->flags |= WIPHY_FLAG_IBSS_RSN;
-	hw->wiphy->interface_modes =
-		BIT(NL80211_IFTYPE_STATION) |
-		BIT(NL80211_IFTYPE_AP) |
-#ifdef CONFIG_MAC80211_MESH
-		BIT(NL80211_IFTYPE_MESH_POINT) |
-#endif
-		BIT(NL80211_IFTYPE_P2P_CLIENT) |
-		BIT(NL80211_IFTYPE_P2P_GO) |
-		BIT(NL80211_IFTYPE_ADHOC);
-
-	return phy;
-}
-EXPORT_SYMBOL_GPL(mt76_alloc_phy);
-
-int mt76_register_phy(struct mt76_phy *phy, bool vht,
-		      struct ieee80211_rate *rates, int n_rates)
-{
-	int ret;
-
-	ret = mt76_phy_init(phy, phy->hw);
-	if (ret)
-		return ret;
-
-	if (phy->cap.has_2ghz) {
-		ret = mt76_init_sband_2g(phy, rates, n_rates);
-		if (ret)
-			return ret;
-	}
-
-	if (phy->cap.has_5ghz) {
-		ret = mt76_init_sband_5g(phy, rates + 4, n_rates - 4, vht);
-		if (ret)
-			return ret;
-	}
-
-	if (phy->cap.has_6ghz) {
-		ret = mt76_init_sband_6g(phy, rates + 4, n_rates - 4);
-		if (ret)
-			return ret;
-	}
-
-	if (IS_ENABLED(CONFIG_MT76_LEDS)) {
-		ret = mt76_led_init(phy);
-		if (ret)
-			return ret;
-	}
-
-	wiphy_read_of_freq_limits(phy->hw->wiphy);
-	mt76_check_sband(phy, &phy->sband_2g, NL80211_BAND_2GHZ);
-	mt76_check_sband(phy, &phy->sband_5g, NL80211_BAND_5GHZ);
-	mt76_check_sband(phy, &phy->sband_6g, NL80211_BAND_6GHZ);
-
-	ret = ieee80211_register_hw(phy->hw);
-	if (ret)
-		return ret;
-
-	set_bit(MT76_STATE_REGISTERED, &phy->state);
-	phy->dev->phys[phy->band_idx] = phy;
-
-	return 0;
-}
-EXPORT_SYMBOL_GPL(mt76_register_phy);
-
-void mt76_unregister_phy(struct mt76_phy *phy)
-{
-	struct mt76_dev *dev = phy->dev;
-
-	if (!test_bit(MT76_STATE_REGISTERED, &phy->state))
-		return;
-
-	if (IS_ENABLED(CONFIG_MT76_LEDS))
-		mt76_led_cleanup(phy);
-	mt76_tx_status_check(dev, true);
-	ieee80211_unregister_hw(phy->hw);
-	dev->phys[phy->band_idx] = NULL;
-}
-EXPORT_SYMBOL_GPL(mt76_unregister_phy);
-
 int mt76_create_page_pool(struct mt76_dev *dev, struct mt76_queue *q)
 {
 	struct page_pool_params pp_params = {
@@ -1610,52 +1512,6 @@ int mt76_get_sar_power(struct mt76_phy *phy,
 }
 EXPORT_SYMBOL_GPL(mt76_get_sar_power);
 
-static void
-__mt76_csa_finish(void *priv, u8 *mac, struct ieee80211_vif *vif)
-{
-	if (vif->bss_conf.csa_active && ieee80211_beacon_cntdwn_is_complete(vif))
-		ieee80211_csa_finish(vif);
-}
-
-void mt76_csa_finish(struct mt76_dev *dev)
-{
-	if (!dev->csa_complete)
-		return;
-
-	ieee80211_iterate_active_interfaces_atomic(dev->hw,
-		IEEE80211_IFACE_ITER_RESUME_ALL,
-		__mt76_csa_finish, dev);
-
-	dev->csa_complete = 0;
-}
-EXPORT_SYMBOL_GPL(mt76_csa_finish);
-
-static void
-__mt76_csa_check(void *priv, u8 *mac, struct ieee80211_vif *vif)
-{
-	struct mt76_dev *dev = priv;
-
-	if (!vif->bss_conf.csa_active)
-		return;
-
-	dev->csa_complete |= ieee80211_beacon_cntdwn_is_complete(vif);
-}
-
-void mt76_csa_check(struct mt76_dev *dev)
-{
-	ieee80211_iterate_active_interfaces_atomic(dev->hw,
-		IEEE80211_IFACE_ITER_RESUME_ALL,
-		__mt76_csa_check, dev);
-}
-EXPORT_SYMBOL_GPL(mt76_csa_check);
-
-int
-mt76_set_tim(struct ieee80211_hw *hw, struct ieee80211_sta *sta, bool set)
-{
-	return 0;
-}
-EXPORT_SYMBOL_GPL(mt76_set_tim);
-
 void mt76_insert_ccmp_hdr(struct sk_buff *skb, u8 key_id)
 {
 	struct mt76_rx_status *status = (struct mt76_rx_status *)skb->cb;
@@ -1702,23 +1558,6 @@ int mt76_get_rate(struct mt76_dev *dev,
 	return 0;
 }
 EXPORT_SYMBOL_GPL(mt76_get_rate);
-
-void mt76_sw_scan(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
-		  const u8 *mac)
-{
-	struct mt76_phy *phy = hw->priv;
-
-	set_bit(MT76_SCANNING, &phy->state);
-}
-EXPORT_SYMBOL_GPL(mt76_sw_scan);
-
-void mt76_sw_scan_complete(struct ieee80211_hw *hw, struct ieee80211_vif *vif)
-{
-	struct mt76_phy *phy = hw->priv;
-
-	clear_bit(MT76_SCANNING, &phy->state);
-}
-EXPORT_SYMBOL_GPL(mt76_sw_scan_complete);
 
 int mt76_get_antenna(struct ieee80211_hw *hw, u32 *tx_ant, u32 *rx_ant)
 {
@@ -1830,43 +1669,3 @@ void mt76_ethtool_page_pool_stats(struct mt76_dev *dev, u64 *data, int *index)
 #endif
 }
 EXPORT_SYMBOL_GPL(mt76_ethtool_page_pool_stats);
-
-enum mt76_dfs_state mt76_phy_dfs_state(struct mt76_phy *phy)
-{
-	struct ieee80211_hw *hw = phy->hw;
-	struct mt76_dev *dev = phy->dev;
-
-	if (dev->region == NL80211_DFS_UNSET ||
-	    test_bit(MT76_SCANNING, &phy->state))
-		return MT_DFS_STATE_DISABLED;
-
-	if (!hw->conf.radar_enabled) {
-		if ((hw->conf.flags & IEEE80211_CONF_MONITOR) &&
-		    (phy->chandef.chan->flags & IEEE80211_CHAN_RADAR))
-			return MT_DFS_STATE_ACTIVE;
-
-		return MT_DFS_STATE_DISABLED;
-	}
-
-	if (!cfg80211_reg_can_beacon(hw->wiphy, &phy->chandef, NL80211_IFTYPE_AP))
-		return MT_DFS_STATE_CAC;
-
-	return MT_DFS_STATE_ACTIVE;
-}
-EXPORT_SYMBOL_GPL(mt76_phy_dfs_state);
-
-#ifdef CONFIG_NET_MEDIATEK_SOC_WED
-int mt76_net_setup_tc(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
-		      struct net_device *netdev, enum tc_setup_type type,
-		      void *type_data)
-{
-	struct mt76_phy *phy = hw->priv;
-	struct mtk_wed_device *wed = &phy->dev->mmio.wed;
-
-	if (!mtk_wed_device_active(wed))
-		return -EOPNOTSUPP;
-
-	return mtk_wed_device_setup_tc(wed, netdev, type, type_data);
-}
-EXPORT_SYMBOL_GPL(mt76_net_setup_tc);
-#endif /* CONFIG_NET_MEDIATEK_SOC_WED */

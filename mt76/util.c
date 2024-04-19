@@ -64,52 +64,6 @@ int mt76_wcid_alloc(u32 *mask, int size)
 }
 EXPORT_SYMBOL_GPL(mt76_wcid_alloc);
 
-int mt76_get_min_avg_rssi(struct mt76_dev *dev, bool ext_phy)
-{
-	struct mt76_wcid *wcid;
-	int i, j, min_rssi = 0;
-	s8 cur_rssi;
-
-	local_bh_disable();
-	rcu_read_lock();
-
-	for (i = 0; i < ARRAY_SIZE(dev->wcid_mask); i++) {
-		u32 mask = dev->wcid_mask[i];
-		u32 phy_mask = dev->wcid_phy_mask[i];
-
-		if (!mask)
-			continue;
-
-		for (j = i * 32; mask; j++, mask >>= 1, phy_mask >>= 1) {
-			if (!(mask & 1))
-				continue;
-
-			if (!!(phy_mask & 1) != ext_phy)
-				continue;
-
-			wcid = rcu_dereference(dev->wcid[j]);
-			if (!wcid)
-				continue;
-
-			spin_lock(&dev->rx_lock);
-			if (wcid->inactive_count++ < 5)
-				cur_rssi = -ewma_signal_read(&wcid->rssi);
-			else
-				cur_rssi = 0;
-			spin_unlock(&dev->rx_lock);
-
-			if (cur_rssi < min_rssi)
-				min_rssi = cur_rssi;
-		}
-	}
-
-	rcu_read_unlock();
-	local_bh_enable();
-
-	return min_rssi;
-}
-EXPORT_SYMBOL_GPL(mt76_get_min_avg_rssi);
-
 int __mt76_worker_fn(void *ptr)
 {
 	struct mt76_worker *w = ptr;

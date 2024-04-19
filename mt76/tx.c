@@ -15,28 +15,6 @@ mt76_txq_get_qid(struct ieee80211_txq *txq)
 }
 
 void
-mt76_tx_check_agg_ssn(struct ieee80211_sta *sta, struct sk_buff *skb)
-{
-	struct ieee80211_hdr *hdr = (struct ieee80211_hdr *)skb->data;
-	struct ieee80211_txq *txq;
-	struct mt76_txq *mtxq;
-	u8 tid;
-
-	if (!sta || !ieee80211_is_data_qos(hdr->frame_control) ||
-	    !ieee80211_is_data_present(hdr->frame_control))
-		return;
-
-	tid = skb->priority & IEEE80211_QOS_CTL_TAG1D_MASK;
-	txq = sta->txq[tid];
-	mtxq = (struct mt76_txq *)txq->drv_priv;
-	if (!mtxq->aggr)
-		return;
-
-	mtxq->agg_ssn = le16_to_cpu(hdr->seq_ctrl) + 0x10;
-}
-EXPORT_SYMBOL_GPL(mt76_tx_check_agg_ssn);
-
-void
 mt76_tx_status_lock(struct mt76_dev *dev, struct sk_buff_head *list)
 		   __acquires(&dev->status_lock)
 {
@@ -702,29 +680,6 @@ void mt76_tx_worker(struct mt76_worker *w)
 	mt76_tx_worker_run(dev);
 }
 
-void mt76_stop_tx_queues(struct mt76_phy *phy, struct ieee80211_sta *sta,
-			 bool send_bar)
-{
-	int i;
-
-	for (i = 0; i < ARRAY_SIZE(sta->txq); i++) {
-		struct ieee80211_txq *txq = sta->txq[i];
-		struct mt76_queue *hwq;
-		struct mt76_txq *mtxq;
-
-		if (!txq)
-			continue;
-
-		hwq = phy->q_tx[mt76_txq_get_qid(txq)];
-		mtxq = (struct mt76_txq *)txq->drv_priv;
-
-		spin_lock_bh(&hwq->lock);
-		mtxq->send_bar = mtxq->aggr && send_bar;
-		spin_unlock_bh(&hwq->lock);
-	}
-}
-EXPORT_SYMBOL_GPL(mt76_stop_tx_queues);
-
 void mt76_wake_tx_queue(struct ieee80211_hw *hw, struct ieee80211_txq *txq)
 {
 	struct mt76_phy *phy = hw->priv;
@@ -817,31 +772,6 @@ void __mt76_set_tx_blocked(struct mt76_dev *dev, bool blocked)
 }
 EXPORT_SYMBOL_GPL(__mt76_set_tx_blocked);
 
-int mt76_token_consume(struct mt76_dev *dev, struct mt76_txwi_cache **ptxwi)
-{
-	int token;
-
-	spin_lock_bh(&dev->token_lock);
-
-	token = idr_alloc(&dev->token, *ptxwi, 0, dev->token_size, GFP_ATOMIC);
-	if (token >= 0)
-		dev->token_count++;
-
-#ifdef CONFIG_NET_MEDIATEK_SOC_WED
-	if (mtk_wed_device_active(&dev->mmio.wed) &&
-	    token >= dev->mmio.wed.wlan.token_start)
-		dev->wed_token_count++;
-#endif
-
-	if (dev->token_count >= dev->token_size - MT76_TOKEN_FREE_THR)
-		__mt76_set_tx_blocked(dev, true);
-
-	spin_unlock_bh(&dev->token_lock);
-
-	return token;
-}
-EXPORT_SYMBOL_GPL(mt76_token_consume);
-
 int mt76_rx_token_consume(struct mt76_dev *dev, void *ptr,
 			  struct mt76_txwi_cache *t, dma_addr_t phys)
 {
@@ -888,16 +818,3 @@ mt76_token_release(struct mt76_dev *dev, int token, bool *wake)
 	return txwi;
 }
 EXPORT_SYMBOL_GPL(mt76_token_release);
-
-struct mt76_txwi_cache *
-mt76_rx_token_release(struct mt76_dev *dev, int token)
-{
-	struct mt76_txwi_cache *t;
-
-	spin_lock_bh(&dev->rx_token_lock);
-	t = idr_remove(&dev->rx_token, token);
-	spin_unlock_bh(&dev->rx_token_lock);
-
-	return t;
-}
-EXPORT_SYMBOL_GPL(mt76_rx_token_release);

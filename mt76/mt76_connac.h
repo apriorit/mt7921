@@ -314,12 +314,6 @@ static inline u8 mt76_connac_spe_idx(u8 antenna_mask)
 	return ant_to_spe[antenna_mask];
 }
 
-static inline void mt76_connac_irq_enable(struct mt76_dev *dev, u32 mask)
-{
-	mt76_set_irq_mask(dev, 0, 0, mask);
-	tasklet_schedule(&dev->irq_tasklet);
-}
-
 int mt76_connac_pm_wake(struct mt76_phy *phy, struct mt76_connac_pm *pm);
 void mt76_connac_power_save_sched(struct mt76_phy *phy,
 				  struct mt76_connac_pm *pm);
@@ -395,16 +389,9 @@ mt76_connac_mutex_release(struct mt76_dev *dev, struct mt76_connac_pm *pm)
 }
 
 void mt76_connac_gen_ppe_thresh(u8 *he_ppet, int nss);
-int mt76_connac_init_tx_queues(struct mt76_phy *phy, int idx, int n_desc,
-			       int ring_base, void *wed, u32 flags);
 
-void mt76_connac_write_hw_txp(struct mt76_dev *dev,
-			      struct mt76_tx_info *tx_info,
-			      void *txp_ptr, u32 id);
 void mt76_connac_txp_skb_unmap(struct mt76_dev *dev,
 			       struct mt76_txwi_cache *txwi);
-void mt76_connac_tx_complete_skb(struct mt76_dev *mdev,
-				 struct mt76_queue_entry *e);
 void mt76_connac_pm_queue_skb(struct ieee80211_hw *hw,
 			      struct mt76_connac_pm *pm,
 			      struct mt76_wcid *wcid,
@@ -435,9 +422,5 @@ void mt76_connac2_tx_check_aggr(struct ieee80211_sta *sta, __le32 *txwi);
 void mt76_connac2_txwi_free(struct mt76_dev *dev, struct mt76_txwi_cache *t,
 			    struct ieee80211_sta *sta,
 			    struct list_head *free_list);
-void mt76_connac2_tx_token_put(struct mt76_dev *dev);
 
-/* connac3 */
-void mt76_connac3_mac_decode_he_radiotap(struct sk_buff *skb, __le32 *rxv,
-					 u8 mode);
 #endif /* __MT76_CONNAC_H */

@@ -1861,7 +1861,6 @@ mt76_connac_mcu_add_tlv(struct sk_buff *skb, int tag, int len)
 }
 
 int mt76_connac_mcu_set_channel_domain(struct mt76_phy *phy);
-int mt76_connac_mcu_set_vif_ps(struct mt76_dev *dev, struct ieee80211_vif *vif);
 void mt76_connac_mcu_sta_basic_tlv(struct mt76_dev *dev, struct sk_buff *skb,
 				   struct ieee80211_vif *vif,
 				   struct ieee80211_sta *sta, bool enable,
@@ -1880,9 +1879,6 @@ int mt76_connac_mcu_sta_update_hdr_trans(struct mt76_dev *dev,
 void mt76_connac_mcu_sta_he_tlv_v2(struct sk_buff *skb, struct ieee80211_sta *sta);
 u8 mt76_connac_get_phy_mode_v2(struct mt76_phy *mphy, struct ieee80211_vif *vif,
 			       enum nl80211_band band, struct ieee80211_sta *sta);
-int mt76_connac_mcu_wtbl_update_hdr_trans(struct mt76_dev *dev,
-					  struct ieee80211_vif *vif,
-					  struct ieee80211_sta *sta);
 void mt76_connac_mcu_sta_tlv(struct mt76_phy *mphy, struct sk_buff *skb,
 			     struct ieee80211_sta *sta,
 			     struct ieee80211_vif *vif,
@@ -1914,8 +1910,6 @@ int mt76_connac_mcu_uni_add_bss(struct mt76_phy *phy,
 				struct ieee80211_chanctx_conf *ctx);
 int mt76_connac_mcu_sta_cmd(struct mt76_phy *phy,
 			    struct mt76_sta_cmd_info *info);
-void mt76_connac_mcu_beacon_loss_iter(void *priv, u8 *mac,
-				      struct ieee80211_vif *vif);
 int mt76_connac_mcu_set_rts_thresh(struct mt76_dev *dev, u32 val, u8 band);
 int mt76_connac_mcu_set_mac_enable(struct mt76_dev *dev, int band, bool enable,
 				   bool hdr_trans);
@@ -1963,42 +1957,22 @@ s8 mt76_connac_get_ch_power(struct mt76_phy *phy,
 			    struct ieee80211_channel *chan,
 			    s8 target_power);
 int mt76_connac_mcu_set_rate_txpower(struct mt76_phy *phy);
-int mt76_connac_mcu_set_p2p_oppps(struct ieee80211_hw *hw,
-				  struct ieee80211_vif *vif);
-u32 mt76_connac_mcu_reg_rr(struct mt76_dev *dev, u32 offset);
-void mt76_connac_mcu_reg_wr(struct mt76_dev *dev, u32 offset, u32 val);
 
 const struct ieee80211_sta_he_cap *
 mt76_connac_get_he_phy_cap(struct mt76_phy *phy, struct ieee80211_vif *vif);
-const struct ieee80211_sta_eht_cap *
-mt76_connac_get_eht_phy_cap(struct mt76_phy *phy, struct ieee80211_vif *vif);
 u8 mt76_connac_get_phy_mode(struct mt76_phy *phy, struct ieee80211_vif *vif,
 			    enum nl80211_band band, struct ieee80211_sta *sta);
-u8 mt76_connac_get_phy_mode_ext(struct mt76_phy *phy, struct ieee80211_vif *vif,
-				enum nl80211_band band);
 
 int mt76_connac_mcu_add_key(struct mt76_dev *dev, struct ieee80211_vif *vif,
 			    struct mt76_connac_sta_key_conf *sta_key_conf,
 			    struct ieee80211_key_conf *key, int mcu_cmd,
 			    struct mt76_wcid *wcid, enum set_key_cmd cmd);
 
-void mt76_connac_mcu_bss_ext_tlv(struct sk_buff *skb, struct mt76_vif *mvif);
-void mt76_connac_mcu_bss_omac_tlv(struct sk_buff *skb,
-				  struct ieee80211_vif *vif);
-int mt76_connac_mcu_bss_basic_tlv(struct sk_buff *skb,
-				  struct ieee80211_vif *vif,
-				  struct ieee80211_sta *sta,
-				  struct mt76_phy *phy, u16 wlan_idx,
-				  bool enable);
 void mt76_connac_mcu_sta_uapsd(struct sk_buff *skb, struct ieee80211_vif *vif,
 			       struct ieee80211_sta *sta);
 void mt76_connac_mcu_wtbl_smps_tlv(struct sk_buff *skb,
 				   struct ieee80211_sta *sta,
 				   void *sta_wtbl, void *wtbl_tlv);
-int mt76_connac_mcu_set_pm(struct mt76_dev *dev, int band, int enter);
-int mt76_connac_mcu_restart(struct mt76_dev *dev);
-int mt76_connac_mcu_rdd_cmd(struct mt76_dev *dev, int cmd, u8 index,
-			    u8 rx_sel, u8 val);
 int mt76_connac_mcu_sta_wed_update(struct mt76_dev *dev, struct sk_buff *skb);
 int mt76_connac2_load_ram(struct mt76_dev *dev, const char *fw_wm,
 			  const char *fw_wa);

@@ -78,37 +78,6 @@ u32 ___mt76u_rr(struct mt76_dev *dev, u8 req, u8 req_type, u32 addr)
 }
 EXPORT_SYMBOL_GPL(___mt76u_rr);
 
-static u32 __mt76u_rr(struct mt76_dev *dev, u32 addr)
-{
-	u8 req;
-
-	switch (addr & MT_VEND_TYPE_MASK) {
-	case MT_VEND_TYPE_EEPROM:
-		req = MT_VEND_READ_EEPROM;
-		break;
-	case MT_VEND_TYPE_CFG:
-		req = MT_VEND_READ_CFG;
-		break;
-	default:
-		req = MT_VEND_MULTI_READ;
-		break;
-	}
-
-	return ___mt76u_rr(dev, req, USB_DIR_IN | USB_TYPE_VENDOR,
-			   addr & ~MT_VEND_TYPE_MASK);
-}
-
-static u32 mt76u_rr(struct mt76_dev *dev, u32 addr)
-{
-	u32 ret;
-
-	mutex_lock(&dev->usb.usb_ctrl_mtx);
-	ret = __mt76u_rr(dev, addr);
-	mutex_unlock(&dev->usb.usb_ctrl_mtx);
-
-	return ret;
-}
-
 void ___mt76u_wr(struct mt76_dev *dev, u8 req, u8 req_type,
 		 u32 addr, u32 val)
 {
@@ -120,72 +89,6 @@ void ___mt76u_wr(struct mt76_dev *dev, u8 req, u8 req_type,
 	trace_usb_reg_wr(dev, addr, val);
 }
 EXPORT_SYMBOL_GPL(___mt76u_wr);
-
-static void __mt76u_wr(struct mt76_dev *dev, u32 addr, u32 val)
-{
-	u8 req;
-
-	switch (addr & MT_VEND_TYPE_MASK) {
-	case MT_VEND_TYPE_CFG:
-		req = MT_VEND_WRITE_CFG;
-		break;
-	default:
-		req = MT_VEND_MULTI_WRITE;
-		break;
-	}
-	___mt76u_wr(dev, req, USB_DIR_OUT | USB_TYPE_VENDOR,
-		    addr & ~MT_VEND_TYPE_MASK, val);
-}
-
-static void mt76u_wr(struct mt76_dev *dev, u32 addr, u32 val)
-{
-	mutex_lock(&dev->usb.usb_ctrl_mtx);
-	__mt76u_wr(dev, addr, val);
-	mutex_unlock(&dev->usb.usb_ctrl_mtx);
-}
-
-static u32 mt76u_rmw(struct mt76_dev *dev, u32 addr,
-		     u32 mask, u32 val)
-{
-	mutex_lock(&dev->usb.usb_ctrl_mtx);
-	val |= __mt76u_rr(dev, addr) & ~mask;
-	__mt76u_wr(dev, addr, val);
-	mutex_unlock(&dev->usb.usb_ctrl_mtx);
-
-	return val;
-}
-
-static void mt76u_copy(struct mt76_dev *dev, u32 offset,
-		       const void *data, int len)
-{
-	struct mt76_usb *usb = &dev->usb;
-	const u8 *val = data;
-	int ret;
-	int current_batch_size;
-	int i = 0;
-
-	/* Assure that always a multiple of 4 bytes are copied,
-	 * otherwise beacons can be corrupted.
-	 * See: "mt76: round up length on mt76_wr_copy"
-	 * Commit 850e8f6fbd5d0003b0
-	 */
-	len = round_up(len, 4);
-
-	mutex_lock(&usb->usb_ctrl_mtx);
-	while (i < len) {
-		current_batch_size = min_t(int, usb->data_len, len - i);
-		memcpy(usb->data, val + i, current_batch_size);
-		ret = __mt76u_vendor_request(dev, MT_VEND_MULTI_WRITE,
-					     USB_DIR_OUT | USB_TYPE_VENDOR,
-					     0, offset + i, usb->data,
-					     current_batch_size);
-		if (ret < 0)
-			break;
-
-		i += current_batch_size;
-	}
-	mutex_unlock(&usb->usb_ctrl_mtx);
-}
 
 void mt76u_read_copy(struct mt76_dev *dev, u32 offset,
 		     void *data, int len)
@@ -211,74 +114,6 @@ void mt76u_read_copy(struct mt76_dev *dev, u32 offset,
 	mutex_unlock(&usb->usb_ctrl_mtx);
 }
 EXPORT_SYMBOL_GPL(mt76u_read_copy);
-
-void mt76u_single_wr(struct mt76_dev *dev, const u8 req,
-		     const u16 offset, const u32 val)
-{
-	mutex_lock(&dev->usb.usb_ctrl_mtx);
-	__mt76u_vendor_request(dev, req,
-			       USB_DIR_OUT | USB_TYPE_VENDOR,
-			       val & 0xffff, offset, NULL, 0);
-	__mt76u_vendor_request(dev, req,
-			       USB_DIR_OUT | USB_TYPE_VENDOR,
-			       val >> 16, offset + 2, NULL, 0);
-	mutex_unlock(&dev->usb.usb_ctrl_mtx);
-}
-EXPORT_SYMBOL_GPL(mt76u_single_wr);
-
-static int
-mt76u_req_wr_rp(struct mt76_dev *dev, u32 base,
-		const struct mt76_reg_pair *data, int len)
-{
-	struct mt76_usb *usb = &dev->usb;
-
-	mutex_lock(&usb->usb_ctrl_mtx);
-	while (len > 0) {
-		__mt76u_wr(dev, base + data->reg, data->value);
-		len--;
-		data++;
-	}
-	mutex_unlock(&usb->usb_ctrl_mtx);
-
-	return 0;
-}
-
-static int
-mt76u_wr_rp(struct mt76_dev *dev, u32 base,
-	    const struct mt76_reg_pair *data, int n)
-{
-	if (test_bit(MT76_STATE_MCU_RUNNING, &dev->phy.state))
-		return dev->mcu_ops->mcu_wr_rp(dev, base, data, n);
-	else
-		return mt76u_req_wr_rp(dev, base, data, n);
-}
-
-static int
-mt76u_req_rd_rp(struct mt76_dev *dev, u32 base, struct mt76_reg_pair *data,
-		int len)
-{
-	struct mt76_usb *usb = &dev->usb;
-
-	mutex_lock(&usb->usb_ctrl_mtx);
-	while (len > 0) {
-		data->value = __mt76u_rr(dev, base + data->reg);
-		len--;
-		data++;
-	}
-	mutex_unlock(&usb->usb_ctrl_mtx);
-
-	return 0;
-}
-
-static int
-mt76u_rd_rp(struct mt76_dev *dev, u32 base,
-	    struct mt76_reg_pair *data, int n)
-{
-	if (test_bit(MT76_STATE_MCU_RUNNING, &dev->phy.state))
-		return dev->mcu_ops->mcu_rd_rp(dev, base, data, n);
-	else
-		return mt76u_req_rd_rp(dev, base, data, n);
-}
 
 static bool mt76u_check_sg(struct mt76_dev *dev)
 {
@@ -1109,23 +944,6 @@ int __mt76u_init(struct mt76_dev *dev, struct usb_interface *intf,
 	return 0;
 }
 EXPORT_SYMBOL_GPL(__mt76u_init);
-
-int mt76u_init(struct mt76_dev *dev, struct usb_interface *intf)
-{
-	static struct mt76_bus_ops bus_ops = {
-		.rr = mt76u_rr,
-		.wr = mt76u_wr,
-		.rmw = mt76u_rmw,
-		.read_copy = mt76u_read_copy,
-		.write_copy = mt76u_copy,
-		.wr_rp = mt76u_wr_rp,
-		.rd_rp = mt76u_rd_rp,
-		.type = MT76_BUS_USB,
-	};
-
-	return __mt76u_init(dev, intf, &bus_ops);
-}
-EXPORT_SYMBOL_GPL(mt76u_init);
 
 MODULE_AUTHOR("Lorenzo Bianconi <lorenzo.bianconi83@gmail.com>");
 MODULE_DESCRIPTION("MediaTek MT76x USB helpers");

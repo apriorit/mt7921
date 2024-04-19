@@ -50,10 +50,10 @@ int mt792x_tx_stats_show(struct seq_file *file, void *data)
 	seq_puts(file, "Tx MSDU stat:\n");
 	for (i = 0; i < ARRAY_SIZE(mib->tx_amsdu); i++) {
 		seq_printf(file, "AMSDU pack count of %d MSDU in TXD: %8d ",
-			   i + 1, mib->tx_amsdu[i]);
+			i + 1, mib->tx_amsdu[i]);
 		if (mib->tx_amsdu_cnt)
 			seq_printf(file, "(%3d%%)\n",
-				   mib->tx_amsdu[i] * 100 / mib->tx_amsdu_cnt);
+				mib->tx_amsdu[i] * 100 / mib->tx_amsdu_cnt);
 		else
 			seq_puts(file, "\n");
 	}
