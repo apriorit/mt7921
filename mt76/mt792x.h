@@ -295,12 +295,6 @@ void mt792x_sta_statistics(struct ieee80211_hw *hw,
 			   struct ieee80211_sta *sta,
 			   struct station_info *sinfo);
 void mt792x_set_coverage_class(struct ieee80211_hw *hw, s16 coverage_class);
-int mt792x_tx_stats_show(struct seq_file *file, void *data);
-int mt792x_queues_acq(struct seq_file *s, void *data);
-int mt792x_queues_read(struct seq_file *s, void *data);
-int mt792x_pm_stats(struct seq_file *s, void *data);
-int mt792x_pm_idle_timeout_set(void *data, u64 val);
-int mt792x_pm_idle_timeout_get(void *data, u64 *val);
 int mt792x_init_wiphy(struct ieee80211_hw *hw);
 struct ieee80211_ops *
 mt792x_get_mac80211_ops(struct device *dev,

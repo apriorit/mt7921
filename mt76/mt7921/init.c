@@ -228,11 +228,8 @@ static void mt7921_init_work(struct work_struct *work)
 		return;
 	}
 
-	ret = mt7921_init_debugfs(dev);
-	if (ret) {
-		dev_err(dev->mt76.dev, "register debugfs failed\n");
-		return;
-	}
+	dev_info(dev->mt76.dev, "skip register debugfs \n");
+
 
 	ret = mt7921_thermal_init(&dev->phy);
 	if (ret) {
