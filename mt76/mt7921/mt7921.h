@@ -176,11 +176,8 @@ struct mt7921_txpwr {
 
 extern const struct ieee80211_ops mt7921_ops;
 
-u32 mt7921_reg_map(struct mt792x_dev *dev, u32 addr);
-
 int __mt7921_start(struct mt792x_phy *phy);
 int mt7921_register_device(struct mt792x_dev *dev);
-void mt7921_unregister_device(struct mt792x_dev *dev);
 int mt7921_run_firmware(struct mt792x_dev *dev);
 int mt7921_mcu_set_bss_pm(struct mt792x_dev *dev, struct ieee80211_vif *vif,
 			  bool enable);
@@ -287,7 +284,6 @@ int mt7921s_mcu_init(struct mt792x_dev *dev);
 int mt7921s_mcu_drv_pmctrl(struct mt792x_dev *dev);
 int mt7921s_mcu_fw_pmctrl(struct mt792x_dev *dev);
 void mt7921_mac_add_txs(struct mt792x_dev *dev, void *data);
-void mt7921_set_runtime_pm(struct mt792x_dev *dev);
 void mt7921_mcu_set_suspend_iter(void *priv, u8 *mac,
 				 struct ieee80211_vif *vif);
 void mt7921_set_ipv6_ns_work(struct work_struct *work);
