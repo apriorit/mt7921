@@ -76,14 +76,4 @@ enum mt76_dma_wed_ind_reason {
 	MT_DMA_WED_IND_REASON_OLDPKT,
 };
 
-int mt76_dma_wed_setup(struct mt76_dev *dev, struct mt76_queue *q, bool reset);
-
-static inline void
-mt76_dma_reset_tx_queue(struct mt76_dev *dev, struct mt76_queue *q)
-{
-	dev->queue_ops->reset_q(dev, q);
-	if (mtk_wed_device_active(&dev->mmio.wed))
-		mt76_dma_wed_setup(dev, q, true);
-}
-
 #endif
