@@ -1273,7 +1273,7 @@ void mt76_rx_complete(struct mt76_dev *dev, struct sk_buff_head *frames,
 		return;
 	}
 
-	list_for_each_entry_safe(skb, tmp, &list, list) {
+	list_for_each_entry_safe(skb, sk_buff, tmp, &list, list) {
 		skb_list_del_init(skb);
 		napi_gro_receive(napi, skb);
 	}

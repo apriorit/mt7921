@@ -1128,7 +1128,7 @@ static void mt7921_ipv6_addr_change(struct ieee80211_hw *hw,
 	};
 
 	read_lock_bh(&idev->lock);
-	list_for_each_entry(ifa, &idev->addr_list, if_list) {
+	list_for_each_entry(ifa, inet6_ifaddr, &idev->addr_list, if_list) {
 		if (ifa->flags & IFA_F_TENTATIVE)
 			continue;
 		ns_addrs[idx] = ifa->addr;
