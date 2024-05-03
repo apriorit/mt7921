@@ -10,7 +10,6 @@
 #include <linux/io.h>
 #include <linux/spinlock.h>
 #include <linux/skbuff.h>
-#include <linux/leds.h>
 #include <linux/usb.h>
 #include <linux/average.h>
 #include <linux/soc/mediatek/mtk_wed.h>
@@ -795,13 +794,6 @@ struct mt76_phy {
 	} rx_amsdu[__MT_RXQ_MAX];
 
 	struct mt76_freq_range_power *frp;
-
-	struct {
-		struct led_classdev cdev;
-		char name[32];
-		bool al;
-		u8 pin;
-	} leds;
 };
 
 struct mt76_dev {
