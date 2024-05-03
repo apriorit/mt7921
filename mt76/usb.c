@@ -5,7 +5,6 @@
 
 #include <linux/module.h>
 #include "mt76.h"
-#include "usb_trace.h"
 #include "dma.h"
 
 #define MT_VEND_REQ_MAX_RETRY	10
@@ -55,7 +54,6 @@ int mt76u_vendor_request(struct mt76_dev *dev, u8 req,
 	mutex_lock(&dev->usb.usb_ctrl_mtx);
 	ret = __mt76u_vendor_request(dev, req, req_type,
 				     val, offset, buf, len);
-	trace_usb_reg_wr(dev, offset, val);
 	mutex_unlock(&dev->usb.usb_ctrl_mtx);
 
 	return ret;
@@ -72,7 +70,6 @@ u32 ___mt76u_rr(struct mt76_dev *dev, u8 req, u8 req_type, u32 addr)
 				     addr, usb->data, sizeof(__le32));
 	if (ret == sizeof(__le32))
 		data = get_unaligned_le32(usb->data);
-	trace_usb_reg_rr(dev, addr, data);
 
 	return data;
 }
@@ -86,7 +83,6 @@ void ___mt76u_wr(struct mt76_dev *dev, u8 req, u8 req_type,
 	put_unaligned_le32(val, usb->data);
 	__mt76u_vendor_request(dev, req, req_type, addr >> 16,
 			       addr, usb->data, sizeof(__le32));
-	trace_usb_reg_wr(dev, addr, val);
 }
 EXPORT_SYMBOL_GPL(___mt76u_wr);
 
@@ -393,8 +389,6 @@ static void mt76u_complete_rx(struct urb *urb)
 	struct mt76_queue *q = urb->context;
 	unsigned long flags;
 
-	trace_rx_urb(dev, urb);
-
 	switch (urb->status) {
 	case -ECONNRESET:
 	case -ESHUTDOWN:
@@ -428,7 +422,6 @@ mt76u_submit_rx_buf(struct mt76_dev *dev, enum mt76_rxq_id qid,
 
 	mt76u_fill_bulk_urb(dev, USB_DIR_IN, ep, urb,
 			    mt76u_complete_rx, &dev->q_rx[qid]);
-	trace_submit_urb(dev, urb);
 
 	return usb_submit_urb(urb, GFP_ATOMIC);
 }
@@ -727,7 +720,6 @@ static void mt76u_tx_kick(struct mt76_dev *dev, struct mt76_queue *q)
 	while (q->first != q->head) {
 		urb = q->entry[q->first].urb;
 
-		trace_submit_urb(dev, urb);
 		err = usb_submit_urb(urb, GFP_ATOMIC);
 		if (err < 0) {
 			if (err == -ENODEV)

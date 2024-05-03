@@ -6,7 +6,6 @@
 #include "mt7921.h"
 #include "mcu.h"
 #include "../mt76_connac2_mac.h"
-#include "../mt792x_trace.h"
 
 #define MT_STA_BFER			BIT(0)
 #define MT_STA_BFEE			BIT(1)
@@ -239,7 +238,6 @@ mt7921_mcu_low_power_event(struct mt792x_dev *dev, struct sk_buff *skb)
 	skb_pull(skb, sizeof(struct mt76_connac2_mcu_rxd));
 	event = (struct mt7921_mcu_lp_event *)skb->data;
 
-	trace_lp_event(dev, event->state);
 }
 
 static void
