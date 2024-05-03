@@ -202,7 +202,13 @@ s8 mt76_get_rate_power_limits(struct mt76_phy *phy,
 
 	memset(dest, target_power, sizeof(*dest));
 
-	if (!IS_ENABLED(CONFIG_OF))
+	if (!
+#ifdef CONFIG_OF
+		1
+#else  
+		0
+#endif
+		)
 		return target_power;
 
 	np = mt76_find_power_limits_node(dev);

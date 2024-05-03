@@ -119,7 +119,13 @@ mt7921_mcu_set_ipv6_ns_filter(struct mt76_dev *dev,
 
 void mt7921_mcu_set_suspend_iter(void *priv, u8 *mac, struct ieee80211_vif *vif)
 {
-	if (IS_ENABLED(CONFIG_IPV6)) {
+	if (
+#ifdef CONFIG_IPV6
+		1
+#else  
+		0
+#endif
+		) {
 		struct mt76_phy *phy = priv;
 
 		mt7921_mcu_set_ipv6_ns_filter(phy->dev, vif,

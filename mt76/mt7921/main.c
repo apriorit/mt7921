@@ -1109,7 +1109,7 @@ static void mt7921_sta_set_decap_offload(struct ieee80211_hw *hw,
 	mt792x_mutex_release(dev);
 }
 
-#if IS_ENABLED(CONFIG_IPV6)
+#if defined CONFIG_IPV6
 static void mt7921_ipv6_addr_change(struct ieee80211_hw *hw,
 				    struct ieee80211_vif *vif,
 				    struct inet6_dev *idev)
@@ -1352,7 +1352,7 @@ const struct ieee80211_ops mt7921_ops = {
 	.sta_pre_rcu_remove = mt76_sta_pre_rcu_remove,
 	.set_key = mt7921_set_key,
 	.sta_set_decap_offload = mt7921_sta_set_decap_offload,
-#if IS_ENABLED(CONFIG_IPV6)
+#if defined CONFIG_IPV6
 	.ipv6_addr_change = mt7921_ipv6_addr_change,
 #endif /* CONFIG_IPV6 */
 	.ampdu_action = mt7921_ampdu_action,

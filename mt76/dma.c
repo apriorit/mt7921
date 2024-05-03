@@ -7,7 +7,7 @@
 #include "mt76.h"
 #include "dma.h"
 
-#if IS_ENABLED(CONFIG_NET_MEDIATEK_SOC_WED)
+#if defined CONFIG_NET_MEDIATEK_SOC_WED
 
 #define Q_READ(_q, _field) ({						\
 	u32 _offset = offsetof(struct mt76_queue_regs, _field);		\

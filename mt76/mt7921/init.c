@@ -209,7 +209,7 @@ int mt7921_register_device(struct mt792x_dev *dev)
 	INIT_DELAYED_WORK(&dev->mphy.mac_work, mt792x_mac_work);
 	INIT_DELAYED_WORK(&dev->phy.scan_work, mt7921_scan_work);
 	INIT_DELAYED_WORK(&dev->coredump.work, mt7921_coredump_work);
-#if IS_ENABLED(CONFIG_IPV6)
+#if defined CONFIG_IPV6
 	INIT_WORK(&dev->ipv6_ns_work, mt7921_set_ipv6_ns_work);
 	skb_queue_head_init(&dev->ipv6_ns_list);
 #endif
