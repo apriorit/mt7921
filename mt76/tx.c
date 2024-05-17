@@ -521,7 +521,7 @@ mt76_txq_schedule_list(struct mt76_phy *phy, enum mt76_txq_id qid)
 		if (!wcid || test_bit(MT_WCID_FLAG_PS, &wcid->flags))
 			continue;
 
-		if (mtxq->send_bar && mtxq->aggr) {
+		/*if (mtxq->send_bar && mtxq->aggr) {
 			struct ieee80211_txq *txq = mtxq_to_txq(mtxq);
 			struct ieee80211_sta *sta = txq->sta;
 			struct ieee80211_vif *vif = txq->vif;
@@ -530,7 +530,7 @@ mt76_txq_schedule_list(struct mt76_phy *phy, enum mt76_txq_id qid)
 
 			mtxq->send_bar = false;
 			ieee80211_send_bar(vif, sta->addr, tid, agg_ssn);
-		}
+		}*/
 
 		if (!mt76_txq_stopped(q))
 			n_frames = mt76_txq_send_burst(phy, q, mtxq, wcid);
