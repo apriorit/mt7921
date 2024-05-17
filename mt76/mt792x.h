@@ -9,7 +9,6 @@
 
 #include "mt76_connac_mcu.h"
 #include "mt792x_regs.h"
-#include "mt792x_acpi_sar.h"
 
 #define MT792x_PM_TIMEOUT	(HZ / 12)
 #define MT792x_HW_SCAN_TIMEOUT	(HZ / 10)
