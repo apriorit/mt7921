@@ -912,9 +912,7 @@ int __mt76u_init(struct mt76_dev *dev, struct usb_interface *intf,
 
 	INIT_WORK(&usb->stat_work, mt76u_tx_status_data);
 
-	usb->data_len = usb_maxpacket(udev, usb_sndctrlpipe(udev, 0));
-	if (usb->data_len < 32)
-		usb->data_len = 32;
+	usb->data_len = 32;
 
 	usb->data = devm_kmalloc(dev->dev, usb->data_len, GFP_KERNEL);
 	if (!usb->data)
