@@ -1279,7 +1279,11 @@ void mt76_rx_complete(struct mt76_dev *dev, struct sk_buff_head *frames,
 		return;
 	}
 
+#ifdef _WINDOWS
 	list_for_each_entry_safe(skb, sk_buff, tmp, &list, list) {
+#else
+	list_for_each_entry_safe(skb, tmp, &list, list) {
+#endif
 		skb_list_del_init(skb);
 		napi_gro_receive(napi, skb);
 	}

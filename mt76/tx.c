@@ -193,7 +193,11 @@ mt76_tx_status_check(struct mt76_dev *dev, bool flush)
 	struct sk_buff_head list;
 
 	mt76_tx_status_lock(dev, &list);
+#ifdef _WINDOWS
 	list_for_each_entry_safe(wcid, mt76_wcid, tmp, &dev->wcid_list, list)
+#else
+	list_for_each_entry_safe(wcid, tmp, &dev->wcid_list, list)
+#endif
 		mt76_tx_status_skb_get(dev, wcid, flush ? -1 : 0, &list);
 	mt76_tx_status_unlock(dev, &list);
 }
