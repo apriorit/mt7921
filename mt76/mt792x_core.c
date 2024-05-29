@@ -250,19 +250,26 @@ void mt792x_roc_timer(struct timer_list *timer)
 }
 EXPORT_SYMBOL_GPL(mt792x_roc_timer);
 
+#ifdef _WINDOWS
 static bool mt792x_flush_condition_check(void* data)
 {
 	struct mt792x_dev* dev = (struct mt792x_dev*)data;
 	return !mt76_has_tx_pending(&dev->mphy);
 }
+#endif
 
 void mt792x_flush(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
 		  u32 queues, bool drop)
 {
 	struct mt792x_dev *dev = mt792x_hw_dev(hw);
 
+#ifdef _WINDOWS
 	wait_event_timeout(&dev->mt76.tx_wait,
 		mt792x_flush_condition_check, dev, HZ / 2);
+#else
+	wait_event_timeout(dev->mt76.tx_wait,
+		!mt76_has_tx_pending(&dev->mphy), HZ / 2);
+#endif
 }
 EXPORT_SYMBOL_GPL(mt792x_flush);
 

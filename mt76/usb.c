@@ -811,20 +811,26 @@ static void mt76u_free_tx(struct mt76_dev *dev)
 	}
 }
 
+#ifdef _WINDOWS
 static bool mt76u_stop_tx_condition_check(void* data)
 {
 	struct mt76_dev* dev = (struct mt76_dev*)data;
 	return !mt76_has_tx_pending(&dev->phy);
 }
+#endif
 
 void mt76u_stop_tx(struct mt76_dev *dev)
 {
 	int ret;
 
 	mt76_worker_disable(&dev->usb.status_worker);
-
+#ifdef _WINDOWS
 	ret = wait_event_timeout(&dev->tx_wait, mt76u_stop_tx_condition_check, dev,
 				 HZ / 5);
+#else
+	ret = wait_event_timeout(dev->tx_wait, !mt76_has_tx_pending(&dev->phy),
+		HZ / 5);
+#endif
 	if (!ret) {
 		struct mt76_queue_entry entry;
 		struct mt76_queue *q;

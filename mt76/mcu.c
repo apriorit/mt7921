@@ -29,12 +29,14 @@ __mt76_mcu_msg_alloc(struct mt76_dev *dev, const void *data,
 }
 EXPORT_SYMBOL_GPL(__mt76_mcu_msg_alloc);
 
+#ifdef _WINDOWS
 static bool mt76_mcu_get_response_condition_check(void* data)
 {
 	struct mt76_dev* dev = (struct mt76_dev*)data;
 	return !skb_queue_empty(&dev->mcu.res_q) ||
 		test_bit(MT76_MCU_RESET, &dev->phy.state);
 }
+#endif
 
 struct sk_buff *mt76_mcu_get_response(struct mt76_dev *dev,
 				      unsigned long expires)
@@ -45,9 +47,16 @@ struct sk_buff *mt76_mcu_get_response(struct mt76_dev *dev,
 		return NULL;
 
 	timeout = expires - jiffies;
+#ifdef _WINDOWS
 	wait_event_timeout(&dev->mcu.wait,
 			   mt76_mcu_get_response_condition_check, dev,
 			   timeout);
+#else
+	wait_event_timeout(dev->mcu.wait,
+		(!skb_queue_empty(&dev->mcu.res_q) ||
+			test_bit(MT76_MCU_RESET, &dev->phy.state)),
+		timeout);
+#endif
 	return skb_dequeue(&dev->mcu.res_q);
 }
 EXPORT_SYMBOL_GPL(mt76_mcu_get_response);
