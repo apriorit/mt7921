@@ -4,6 +4,7 @@
 #include <linux/devcoredump.h>
 #include <linux/etherdevice.h>
 #include <linux/timekeeping.h>
+#include <linux/skbuff.h>
 #include "mt7921.h"
 #include "../dma.h"
 #include "../mt76_connac2_mac.h"
@@ -552,7 +553,7 @@ static void mt7921_mac_tx_free(struct mt792x_dev *dev, void *data, int len)
 		mt76_set_tx_blocked(&dev->mt76, false);
 
 	#ifdef _WINDOWS
-	list_for_each_entry_safe(skb, sk_buff, tmp, &free_list, list) {
+	list_for_each_entry_safe(skb, struct sk_buff, tmp, &free_list, list) {
 	#else
 	list_for_each_entry_safe(skb, tmp, &free_list, list) {
 	#endif
