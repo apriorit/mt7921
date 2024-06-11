@@ -534,7 +534,7 @@ bool mt76_connac2_mac_fill_txs(struct mt76_dev *dev, struct mt76_wcid *wcid,
 	struct mt76_sta_stats *stats = &wcid->stats;
 	struct ieee80211_supported_band *sband;
 	struct mt76_phy *mphy;
-	struct rate_info rate = {};
+	struct rate_info rate = { 0 };
 	bool cck = false;
 	u32 txrate, txs, mode, stbc;
 
@@ -695,33 +695,38 @@ mt76_connac2_mac_decode_he_radiotap_ru(struct mt76_rx_status *status,
 
 	status->bw = RATE_INFO_BW_HE_RU;
 
-	switch (ru) {
-	case 0 ... 36:
+	if (ru <= 36 && ru >= 0) // [0; 36]
+	{
 		status->he_ru = NL80211_RATE_INFO_HE_RU_ALLOC_26;
 		offs = ru;
-		break;
-	case 37 ... 52:
+	}
+	else if (ru <= 52 && ru >= 37) // [37; 52]
+	{
 		status->he_ru = NL80211_RATE_INFO_HE_RU_ALLOC_52;
 		offs = ru - 37;
-		break;
-	case 53 ... 60:
+	}
+	else if (ru >= 53 && ru <= 60) // [53; 60]
+	{
 		status->he_ru = NL80211_RATE_INFO_HE_RU_ALLOC_106;
 		offs = ru - 53;
-		break;
-	case 61 ... 64:
+	}
+	else if (ru >= 61 && ru <= 64) // [61; 64]
+	{
 		status->he_ru = NL80211_RATE_INFO_HE_RU_ALLOC_242;
 		offs = ru - 61;
-		break;
-	case 65 ... 66:
+	}
+	else if (ru >= 65 && ru <= 66) // [65; 66]
+	{
 		status->he_ru = NL80211_RATE_INFO_HE_RU_ALLOC_484;
 		offs = ru - 65;
-		break;
-	case 67:
+	}
+	else if (ru == 67)
+	{
 		status->he_ru = NL80211_RATE_INFO_HE_RU_ALLOC_996;
-		break;
-	case 68:
+	}
+	else if (ru == 68)
+	{
 		status->he_ru = NL80211_RATE_INFO_HE_RU_ALLOC_2x996;
-		break;
 	}
 
 	he->data1 |= HE_BITS(DATA1_BW_RU_ALLOC_KNOWN);

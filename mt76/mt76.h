@@ -434,7 +434,7 @@ struct mt76_rx_tid {
 #define MT_TX_STATUS_SKB_TIMEOUT	(HZ / 4)
 
 struct mt76_tx_cb {
-	unsigned long jiffies;
+	unsigned long jiffies_;
 	u16 wcid;
 	u8 pktid;
 	u8 flags;
@@ -871,8 +871,10 @@ struct mt76_dev {
 	int beacon_int;
 	u8 beacon_mask;
 
+#ifndef _WINDOWS
 	struct debugfs_blob_wrapper eeprom;
 	struct debugfs_blob_wrapper otp;
+#endif // !_WINDOWS
 
 	char alpha2[3];
 	enum nl80211_dfs_regions region;

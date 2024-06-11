@@ -1939,7 +1939,7 @@ mt76_connac_mcu_rate_txpower_band(struct mt76_phy *phy,
 		last_ch = chan_list_2ghz[ARRAY_SIZE(chan_list_2ghz) - 1];
 
 	for (i = 0; i < batch_size; i++) {
-		struct mt76_connac_tx_power_limit_tlv tx_power_tlv = {};
+		struct mt76_connac_tx_power_limit_tlv tx_power_tlv = { 0 };
 		int j, msg_len, num_ch;
 		struct sk_buff *skb;
 

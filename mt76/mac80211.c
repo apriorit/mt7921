@@ -1611,7 +1611,7 @@ EXPORT_SYMBOL_GPL(mt76_ethtool_worker);
 void mt76_ethtool_page_pool_stats(struct mt76_dev *dev, u64 *data, int *index)
 {
 #ifdef CONFIG_PAGE_POOL_STATS
-	struct page_pool_stats stats = {};
+	struct page_pool_stats stats = { 0 };
 	int i;
 
 	mt76_for_each_q_rx(dev, i)

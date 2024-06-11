@@ -38,7 +38,7 @@ mt76_tx_status_unlock(struct mt76_dev *dev, struct sk_buff_head *list)
 			.skb = skb,
 			.info = IEEE80211_SKB_CB(skb),
 		};
-		struct ieee80211_rate_status rs = {};
+		struct ieee80211_rate_status rs = { 0 };
 		struct mt76_tx_cb *cb = mt76_tx_skb_cb(skb);
 		struct mt76_wcid *wcid;
 
@@ -165,7 +165,7 @@ mt76_tx_status_skb_get(struct mt76_dev *dev, struct mt76_wcid *wcid, int pktid,
 			if (!(cb->flags & MT_TX_CB_DMA_DONE))
 				continue;
 
-			if (time_is_after_jiffies(cb->jiffies +
+			if (time_is_after_jiffies(cb->jiffies_ +
 						   MT_TX_STATUS_SKB_TIMEOUT))
 				continue;
 		}
@@ -252,7 +252,7 @@ void __mt76_tx_complete_skb(struct mt76_dev *dev, u16 wcid_idx, struct sk_buff *
 #endif
 
 	if (cb->pktid < MT_PACKET_ID_FIRST) {
-		struct ieee80211_rate_status rs = {};
+		struct ieee80211_rate_status rs = { 0 };
 
 		hw = mt76_tx_status_get_hw(dev, skb);
 		status.sta = wcid_to_sta(wcid);
@@ -268,7 +268,7 @@ void __mt76_tx_complete_skb(struct mt76_dev *dev, u16 wcid_idx, struct sk_buff *
 	}
 
 	mt76_tx_status_lock(dev, &list);
-	cb->jiffies = jiffies;
+	cb->jiffies_ = jiffies;
 	__mt76_tx_status_skb_done(dev, skb, MT_TX_CB_DMA_DONE, &list);
 	mt76_tx_status_unlock(dev, &list);
 
