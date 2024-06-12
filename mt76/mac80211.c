@@ -1048,7 +1048,8 @@ mt76_airtime_report(struct mt76_dev *dev, struct mt76_rx_status *status,
 	u32 airtime;
 	u8 tidno = status->qos_ctl & IEEE80211_QOS_CTL_TID_MASK;
 
-	airtime = ieee80211_calc_rx_airtime(dev->hw, &info, len);
+	//TODO uncomment and fix for potential improvement of the network performance
+	airtime = 0; //ieee80211_calc_rx_airtime(dev->hw, &info, len);
 	spin_lock(&dev->cc_lock);
 	dev->cur_cc_bss_rx += airtime;
 	spin_unlock(&dev->cc_lock);
