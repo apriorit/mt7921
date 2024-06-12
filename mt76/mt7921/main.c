@@ -834,6 +834,8 @@ static int mt7921_set_rts_threshold(struct ieee80211_hw *hw, u32 val)
 	return 0;
 }
 
+// TODO uncomment and fix to enable packets agregation
+/*
 static int
 mt7921_ampdu_action(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
 		    struct ieee80211_ampdu_params *params)
@@ -890,6 +892,7 @@ mt7921_ampdu_action(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
 
 	return ret;
 }
+*/
 
 static int mt7921_sta_state(struct ieee80211_hw *hw,
 			    struct ieee80211_vif *vif,
@@ -1355,7 +1358,7 @@ const struct ieee80211_ops mt7921_ops = {
 #if defined CONFIG_IPV6
 	.ipv6_addr_change = mt7921_ipv6_addr_change,
 #endif /* CONFIG_IPV6 */
-	.ampdu_action = mt7921_ampdu_action,
+	/* .ampdu_action = mt7921_ampdu_action */
 	.set_rts_threshold = mt7921_set_rts_threshold,
 	.wake_tx_queue = mt76_wake_tx_queue,
 	.release_buffered_frames = mt76_release_buffered_frames,
