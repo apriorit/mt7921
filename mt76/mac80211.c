@@ -1135,12 +1135,13 @@ mt76_check_sta(struct mt76_dev *dev, struct sk_buff *skb)
 	bool ps;
 
 	hw = mt76_phy_hw(dev, status->phy_idx);
-	if (ieee80211_is_pspoll(hdr->frame_control) && !wcid &&
-	    !(status->flag & RX_FLAG_8023)) {
-		sta = ieee80211_find_sta_by_ifaddr(hw, hdr->addr2, NULL);
-		if (sta)
-			wcid = status->wcid = (struct mt76_wcid *)sta->drv_priv;
-	}
+	// TODO uncomment to enable switching to the power saving mode.
+	// if (ieee80211_is_pspoll(hdr->frame_control) && !wcid &&
+	//     !(status->flag & RX_FLAG_8023)) {
+	// 	sta = ieee80211_find_sta_by_ifaddr(hw, hdr->addr2, NULL);
+	// 	if (sta)
+	// 		wcid = status->wcid = (struct mt76_wcid *)sta->drv_priv;
+	// }
 
 	mt76_airtime_check(dev, skb);
 
@@ -1161,7 +1162,8 @@ mt76_check_sta(struct mt76_dev *dev, struct sk_buff *skb)
 		return;
 
 	if (ieee80211_is_pspoll(hdr->frame_control)) {
-		ieee80211_sta_pspoll(sta);
+		// TODO uncomment to enable switching to the power saving mode.
+		// ieee80211_sta_pspoll(sta);
 		return;
 	}
 
@@ -1172,9 +1174,10 @@ mt76_check_sta(struct mt76_dev *dev, struct sk_buff *skb)
 
 	ps = ieee80211_has_pm(hdr->frame_control);
 
-	if (ps && (ieee80211_is_data_qos(hdr->frame_control) ||
-		   ieee80211_is_qos_nullfunc(hdr->frame_control)))
-		ieee80211_sta_uapsd_trigger(sta, tidno);
+	// // TODO uncomment to enable switching to the power saving mode.
+	// if (ps && (ieee80211_is_data_qos(hdr->frame_control) ||
+	// 	   ieee80211_is_qos_nullfunc(hdr->frame_control)))
+	// 	ieee80211_sta_uapsd_trigger(sta, tidno);
 
 	if (!!test_bit(MT_WCID_FLAG_PS, &wcid->flags) == ps)
 		return;
@@ -1188,7 +1191,8 @@ mt76_check_sta(struct mt76_dev *dev, struct sk_buff *skb)
 	if (!ps)
 		clear_bit(MT_WCID_FLAG_PS, &wcid->flags);
 
-	ieee80211_sta_ps_transition(sta, ps);
+	// TODO uncomment to enable switching to the power saving mode.
+	// ieee80211_sta_ps_transition(sta, ps);
 }
 
 void mt76_rx_complete(struct mt76_dev *dev, struct sk_buff_head *frames,
