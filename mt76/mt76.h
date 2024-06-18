@@ -7,14 +7,17 @@
 #define __MT76_H
 
 #include <linux/kernel.h>
-#include <linux/io.h>
+#include <linux/interrupt.h>
+#include <linux/idr.h>
 #include <linux/spinlock.h>
 #include <linux/skbuff.h>
 #include <linux/usb.h>
 #include <linux/average.h>
 #include <linux/soc/mediatek/mtk_wed.h>
+#include <linux/mm.h>
 #include <net/mac80211.h>
 #include <net/page_pool/helpers.h>
+#include <net/ieee80211_radiotap.h>
 #include "util.h"
 #include "testmode.h"
 
@@ -1556,7 +1559,7 @@ mt76_get_page_pool_buf(struct mt76_queue *q, u32 *offset, u32 size)
 	if (!page)
 		return NULL;
 
-	return page_address(page) + *offset;
+	return (u8*)page_address(page) + *offset;
 }
 
 static inline void mt76_set_tx_blocked(struct mt76_dev *dev, bool blocked)

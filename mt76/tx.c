@@ -194,7 +194,7 @@ mt76_tx_status_check(struct mt76_dev *dev, bool flush)
 
 	mt76_tx_status_lock(dev, &list);
 #ifdef _WINDOWS
-	list_for_each_entry_safe(wcid, mt76_wcid, tmp, &dev->wcid_list, list)
+	list_for_each_entry_safe(wcid, struct mt76_wcid, tmp, &dev->wcid_list, list)
 #else
 	list_for_each_entry_safe(wcid, tmp, &dev->wcid_list, list)
 #endif

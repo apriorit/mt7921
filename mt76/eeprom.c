@@ -4,9 +4,10 @@
  */
 #include <linux/of.h>
 #include <linux/of_net.h>
-#include <linux/mtd/mtd.h>
-#include <linux/mtd/partitions.h>
-#include <linux/nvmem-consumer.h>
+#include <asm-generic/bitops/const_hweight.h>
+//#include <linux/mtd/mtd.h>
+//#include <linux/mtd/partitions.h>
+//#include <linux/nvmem-consumer.h>
 #include <linux/etherdevice.h>
 #include "mt76.h"
 

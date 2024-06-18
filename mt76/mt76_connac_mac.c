@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: ISC
 /* Copyright (C) 2020 MediaTek Inc. */
 
+#include <linux/dma-mapping.h>
 #include "mt76_connac.h"
 #include "mt76_connac2_mac.h"
 #include "dma.h"
@@ -218,7 +219,7 @@ void mt76_connac_txp_skb_unmap(struct mt76_dev *dev,
 EXPORT_SYMBOL_GPL(mt76_connac_txp_skb_unmap);
 
 #define __bitrate_mask_check(_mcs, _mode)				\
-({									\
+{									\
 	u8 i = 0;							\
 	for (nss = 0; i < ARRAY_SIZE(mask->control[band]._mcs); i++) {	\
 		if (!mask->control[band]._mcs[i])			\
@@ -233,7 +234,7 @@ EXPORT_SYMBOL_GPL(mt76_connac_txp_skb_unmap);
 			goto out;					\
 		}							\
 	}								\
-})
+}
 
 u16 mt76_connac2_mac_tx_rate_val(struct mt76_phy *mphy,
 				 struct ieee80211_vif *vif,

@@ -5,7 +5,7 @@
 #include <linux/platform_device.h>
 #include <linux/pci.h>
 #include <linux/module.h>
-#include <net/ipv6.h>
+//#include <net/ipv6.h>
 #include "mt7921.h"
 #include "mcu.h"
 

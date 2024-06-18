@@ -7,7 +7,7 @@
 
 #define MT76_TM_TIMEOUT	10
 
-#include <net/netlink.h>
+//#include <net/netlink.h>
 
 /**
  * enum mt76_testmode_attr - testmode attributes inside NL80211_ATTR_TESTDATA

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: ISC
 /* Copyright (C) 2023 MediaTek Inc. */
 
-#include <linux/acpi.h>
+//#include <linux/acpi.h>
 #include "mt792x.h"
 
 static int
