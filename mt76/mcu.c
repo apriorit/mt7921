@@ -135,7 +135,7 @@ int __mt76_mcu_send_firmware(struct mt76_dev *dev, int cmd, const void *data,
 		if (err)
 			return err;
 
-		data += cur_len;
+		data = (u8*)data + cur_len;
 		len -= cur_len;
 
 		if (dev->queue_ops->tx_cleanup)

@@ -11,7 +11,7 @@
 #define MT_STA_BFEE			BIT(1)
 
 static bool mt7921_disable_clc;
-module_param_named(disable_clc, mt7921_disable_clc, bool, 0644);
+// module_param_named(disable_clc, mt7921_disable_clc, bool, 0644);
 MODULE_PARM_DESC(disable_clc, "disable CLC support");
 
 int mt7921_mcu_parse_response(struct mt76_dev *mdev, int cmd,

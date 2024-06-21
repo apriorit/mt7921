@@ -10,8 +10,8 @@
 #define MT_VEND_REQ_MAX_RETRY	10
 #define MT_VEND_REQ_TOUT_MS	300
 
-static bool disable_usb_sg;
-module_param_named(disable_usb_sg, disable_usb_sg, bool, 0644);
+static bool disable_usb_sg = false;
+//module_param_named(disable_usb_sg, disable_usb_sg, bool, 0644);
 MODULE_PARM_DESC(disable_usb_sg, "Disable usb scatter-gather support");
 
 int __mt76u_vendor_request(struct mt76_dev *dev, u8 req, u8 req_type,
@@ -177,7 +177,7 @@ mt76u_fill_rx_sg(struct mt76_dev *dev, struct mt76_queue *q, struct urb *urb,
 	urb->transfer_buffer_length = urb->num_sgs * q->buf_size;
 	sg_init_marker(urb->sg, urb->num_sgs);
 
-	return i ? : -ENOMEM;
+	return i ? i : -ENOMEM;
 }
 
 static int
@@ -318,11 +318,11 @@ mt76u_build_rx_skb(struct mt76_dev *dev, void *data,
 		if (!skb)
 			return NULL;
 
-		skb_put_data(skb, data + head_room, MT_SKB_HEAD_LEN);
-		data += head_room + MT_SKB_HEAD_LEN;
+		skb_put_data(skb, (u8*)data + head_room, MT_SKB_HEAD_LEN);
+		data = (u8*)data + head_room + MT_SKB_HEAD_LEN;
 		page = virt_to_head_page(data);
 		skb_add_rx_frag(skb, skb_shinfo(skb)->nr_frags,
-				page, data - page_address(page),
+				page, (u8*)data - page_address(page),
 				len - MT_SKB_HEAD_LEN, buf_size);
 
 		return skb;

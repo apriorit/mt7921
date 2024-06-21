@@ -3,6 +3,7 @@
 
 #include <linux/module.h>
 #include <linux/firmware.h>
+#include <linux/netdev_features.h>
 
 #include "mt792x.h"
 #include "dma.h"
@@ -502,6 +503,7 @@ void mt792x_sta_statistics(struct ieee80211_hw *hw,
 			   struct ieee80211_sta *sta,
 			   struct station_info *sinfo)
 {
+	/*
 	struct mt792x_sta *msta = (struct mt792x_sta *)sta->drv_priv;
 	struct rate_info *txrate = &msta->wcid.rate;
 
@@ -532,6 +534,7 @@ void mt792x_sta_statistics(struct ieee80211_hw *hw,
 
 	sinfo->avg_ack_signal = -(s8)ewma_avg_signal_read(&msta->avg_ack_signal);
 	sinfo->filled |= BIT_ULL(NL80211_STA_INFO_ACK_SIGNAL_AVG);
+	*/
 }
 EXPORT_SYMBOL_GPL(mt792x_sta_statistics);
 
