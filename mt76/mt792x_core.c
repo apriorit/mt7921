@@ -6,6 +6,7 @@
 #include <linux/netdev_features.h>
 
 #include "mt792x.h"
+#include <linux/pm_wakeup.h>
 #include "dma.h"
 
 static const struct ieee80211_iface_limit if_limits[] = {
@@ -480,7 +481,7 @@ void mt792x_get_et_stats(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
 
 	/* Add values for all stations owned by this vif */
 	wi.initial_stat_idx = ei;
-	ieee80211_iterate_stations_atomic(hw, mt792x_ethtool_worker, &wi);
+	//ieee80211_iterate_stations_atomic(hw, mt792x_ethtool_worker, &wi);
 
 	mt792x_mutex_release(dev);
 

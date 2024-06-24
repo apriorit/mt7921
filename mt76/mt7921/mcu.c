@@ -151,8 +151,8 @@ mt7921_mcu_uni_roc_event(struct mt792x_dev *dev, struct sk_buff *skb)
 	/* should never happen */
 	WARN_ON_ONCE((le16_to_cpu(grant->tag) != UNI_EVENT_ROC_GRANT));
 
-	if (grant->reqtype == MT7921_ROC_REQ_ROC)
-		ieee80211_ready_on_channel(dev->mt76.phy.hw);
+//	if (grant->reqtype == MT7921_ROC_REQ_ROC)
+//		ieee80211_ready_on_channel(dev->mt76.phy.hw);
 
 	dev->phy.roc_grant = true;
 	wake_up(&dev->phy.roc_wait);
@@ -189,7 +189,7 @@ mt7921_mcu_connection_loss_iter(void *priv, u8 *mac,
 	    vif->type != NL80211_IFTYPE_STATION)
 		return;
 
-	ieee80211_connection_loss(vif);
+	//ieee80211_connection_loss(vif);
 }
 
 static void
@@ -229,7 +229,7 @@ mt7921_mcu_debug_msg_event(struct mt792x_dev *dev, struct sk_buff *skb)
 			if (!msg->content[i])
 				msg->content[i] = ' ';
 		}
-		wiphy_info(mt76_hw(dev)->wiphy, "%.*s", len, msg->content);
+		//wiphy_info(mt76_hw(dev)->wiphy, "%.*s", len, msg->content);
 	}
 }
 
@@ -842,9 +842,9 @@ int mt7921_mcu_set_chan_info(struct mt792x_phy *phy, int cmd)
 		req.switch_reason = CH_SWITCH_NORMAL;
 	else if (dev->mt76.hw->conf.flags & IEEE80211_CONF_OFFCHANNEL)
 		req.switch_reason = CH_SWITCH_SCAN_BYPASS_DPD;
-	else if (!cfg80211_reg_can_beacon(dev->mt76.hw->wiphy, chandef,
-					  NL80211_IFTYPE_AP))
-		req.switch_reason = CH_SWITCH_DFS;
+//	else if (!cfg80211_reg_can_beacon(dev->mt76.hw->wiphy, chandef,
+//					  NL80211_IFTYPE_AP))
+//		req.switch_reason = CH_SWITCH_DFS;
 	else
 		req.switch_reason = CH_SWITCH_NORMAL;
 
@@ -1194,7 +1194,7 @@ mt7921_mcu_uni_add_beacon_offload(struct mt792x_dev *dev,
 	if (!enable)
 		return -EOPNOTSUPP;
 
-	skb = ieee80211_beacon_get_template(mt76_hw(dev), vif, &offs, 0);
+	skb = NULL;//ieee80211_beacon_get_template(mt76_hw(dev), vif, &offs, 0);
 	if (!skb)
 		return -EINVAL;
 

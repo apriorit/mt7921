@@ -882,12 +882,12 @@ void mt76_wcid_key_setup(struct mt76_dev *dev, struct mt76_wcid *wcid,
 
 	/* data frame */
 	for (i = 0; i < IEEE80211_NUM_TIDS; i++) {
-		ieee80211_get_key_rx_seq(key, i, &seq);
+		//ieee80211_get_key_rx_seq(key, i, &seq);
 		memcpy(wcid->rx_key_pn[i], seq.ccmp.pn, sizeof(seq.ccmp.pn));
 	}
 
 	/* robust management frame */
-	ieee80211_get_key_rx_seq(key, -1, &seq);
+	//ieee80211_get_key_rx_seq(key, -1, &seq);
 	memcpy(wcid->rx_key_pn[i], seq.ccmp.pn, sizeof(seq.ccmp.pn));
 
 }

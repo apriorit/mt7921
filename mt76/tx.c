@@ -4,6 +4,7 @@
  */
 
 #include "mt76.h"
+#include <net/mac80211/sta_info.h>
 
 static int
 mt76_txq_get_qid(struct ieee80211_txq *txq)

@@ -576,8 +576,8 @@ struct mt76_mcu {
 	wait_queue_head_t wait;
 };
 
-#define MT_TX_SG_MAX_SIZE	8
-#define MT_RX_SG_MAX_SIZE	4
+#define MT_TX_SG_MAX_SIZE	0
+#define MT_RX_SG_MAX_SIZE	0
 #define MT_NUM_TX_ENTRIES	256
 #define MT_NUM_RX_ENTRIES	128
 #define MCU_RESP_URB_SIZE	1024

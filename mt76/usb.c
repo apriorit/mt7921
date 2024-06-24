@@ -10,7 +10,7 @@
 #define MT_VEND_REQ_MAX_RETRY	10
 #define MT_VEND_REQ_TOUT_MS	300
 
-static bool disable_usb_sg = false;
+static bool disable_usb_sg = true;
 //module_param_named(disable_usb_sg, disable_usb_sg, bool, 0644);
 MODULE_PARM_DESC(disable_usb_sg, "Disable usb scatter-gather support");
 
@@ -269,7 +269,7 @@ static struct urb *
 mt76u_get_next_rx_entry(struct mt76_queue *q)
 {
 	struct urb *urb = NULL;
-	unsigned long flags;
+	unsigned long flags = 0;
 
 	spin_lock_irqsave(&q->lock, flags);
 	if (q->queued > 0) {
@@ -387,7 +387,7 @@ static void mt76u_complete_rx(struct urb *urb)
 {
 	struct mt76_dev *dev = dev_get_drvdata(&urb->dev->dev);
 	struct mt76_queue *q = urb->context;
-	unsigned long flags;
+	unsigned long flags = 0;
 
 	switch (urb->status) {
 	case -ECONNRESET:
@@ -404,7 +404,7 @@ static void mt76u_complete_rx(struct urb *urb)
 	}
 
 	spin_lock_irqsave(&q->lock, flags);
-	if (WARN_ONCE(q->entry[q->head].urb != urb, "rx urb mismatch"))
+	if (q->entry[q->head].urb != urb)
 		goto out;
 
 	q->head = (q->head + 1) % q->ndesc;
@@ -469,7 +469,7 @@ static int
 mt76u_submit_rx_buffers(struct mt76_dev *dev, enum mt76_rxq_id qid)
 {
 	struct mt76_queue *q = &dev->q_rx[qid];
-	unsigned long flags;
+	unsigned long flags = 0;
 	int i, err = 0;
 
 	spin_lock_irqsave(&q->lock, flags);

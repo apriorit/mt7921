@@ -82,7 +82,7 @@ int mt792xu_mcu_power_on(struct mt792x_dev *dev)
 		return ret;
 
 	if (!mt76_poll_msec(dev, MT_CONN_ON_MISC, MT_TOP_MISC2_FW_PWR_ON,
-			    MT_TOP_MISC2_FW_PWR_ON, 500)) {
+			    MT_TOP_MISC2_FW_PWR_ON, 1500)) {
 		dev_err(dev->mt76.dev, "Timeout for power on\n");
 		ret = -EIO;
 	}
