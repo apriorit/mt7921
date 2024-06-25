@@ -319,7 +319,7 @@ mt76_tx(struct mt76_phy *phy, struct ieee80211_sta *sta,
 		return;
 	}
 
-	if (WARN_ON(skb_get_queue_mapping(skb) >= MT_TXQ_PSD))
+	if (skb_get_queue_mapping(skb) >= MT_TXQ_PSD)
 		skb_set_queue_mapping(skb, MT_TXQ_BE);
 
 	if (wcid && !(wcid->tx_info & MT_WCID_TX_INFO_SET))

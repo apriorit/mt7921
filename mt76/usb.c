@@ -308,33 +308,33 @@ mt76u_build_rx_skb(struct mt76_dev *dev, void *data,
 	struct sk_buff *skb;
 
 	head_room = drv_flags & MT_DRV_RX_DMA_HDR ? 0 : MT_DMA_HDR_LEN;
-	if (SKB_WITH_OVERHEAD(buf_size) < head_room + len) {
-		struct page *page;
-
-		/* slow path, not enough space for data and
-		 * skb_shared_info
-		 */
-		skb = alloc_skb(MT_SKB_HEAD_LEN, GFP_ATOMIC);
-		if (!skb)
-			return NULL;
-
-		skb_put_data(skb, (u8*)data + head_room, MT_SKB_HEAD_LEN);
-		data = (u8*)data + head_room + MT_SKB_HEAD_LEN;
-		page = virt_to_head_page(data);
-		skb_add_rx_frag(skb, skb_shinfo(skb)->nr_frags,
-				page, (u8*)data - page_address(page),
-				len - MT_SKB_HEAD_LEN, buf_size);
-
-		return skb;
-	}
+//	if (SKB_WITH_OVERHEAD(buf_size) < head_room + len) {
+//		struct page *page;
+//
+//		/* slow path, not enough space for data and
+//		 * skb_shared_info
+//		 */
+//		skb = alloc_skb(MT_SKB_HEAD_LEN, GFP_ATOMIC);
+//		if (!skb)
+//			return NULL;
+//
+//		skb_put_data(skb, (u8*)data + head_room, MT_SKB_HEAD_LEN);
+//		data = (u8*)data + head_room + MT_SKB_HEAD_LEN;
+//		page = virt_to_head_page(data);
+//		skb_add_rx_frag(skb, skb_shinfo(skb)->nr_frags,
+//				page, (u8*)data - page_address(page),
+//				len - MT_SKB_HEAD_LEN, buf_size);
+//
+//		return skb;
+//	}
 
 	/* fast path */
-	skb = build_skb(data, buf_size);
+	skb = build_skb(data, len);
 	if (!skb)
 		return NULL;
 
 	skb_reserve(skb, head_room);
-	__skb_put(skb, len);
+	//__skb_put(skb, len);
 
 	return skb;
 }
@@ -404,8 +404,8 @@ static void mt76u_complete_rx(struct urb *urb)
 	}
 
 	spin_lock_irqsave(&q->lock, flags);
-	if (q->entry[q->head].urb != urb)
-		goto out;
+//	if (q->entry[q->head].urb != urb)
+//		goto out;
 
 	q->head = (q->head + 1) % q->ndesc;
 	q->queued++;
@@ -744,7 +744,7 @@ static u8 mt76u_ac_to_hwq(struct mt76_dev *dev, u8 ac)
 			[IEEE80211_AC_VO] = 4,
 		};
 
-		if (WARN_ON(ac >= ARRAY_SIZE(lmac_queue_map)))
+		if (ac >= ARRAY_SIZE(lmac_queue_map))
 			return 1; /* BE */
 
 		return lmac_queue_map[ac];

@@ -584,7 +584,7 @@ int mt76_register_device(struct mt76_dev *dev, bool vht,
 	if (ret)
 		return ret;
 
-	WARN_ON(mt76_worker_setup(hw, &dev->tx_worker, NULL, "tx"));
+	mt76_worker_setup(hw, &dev->tx_worker, NULL, "tx");
 	set_bit(MT76_STATE_REGISTERED, &phy->state);
 	sched_set_fifo_low(dev->tx_worker.task);
 
