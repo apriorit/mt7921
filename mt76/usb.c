@@ -439,11 +439,11 @@ mt76u_process_rx_queue(struct mt76_dev *dev, struct mt76_queue *q)
 			break;
 
 		count = mt76u_process_rx_entry(dev, urb, q->buf_size);
-		if (count > 0) {
-			err = mt76u_refill_rx(dev, q, urb, count);
-			if (err < 0)
-				break;
-		}
+//		if (count > 0) {
+//			err = mt76u_refill_rx(dev, q, urb, count);
+//			if (err < 0)
+//				break;
+//		}
 		mt76u_submit_rx_buf(dev, qid, urb);
 	}
 	if (qid == MT_RXQ_MAIN) {
