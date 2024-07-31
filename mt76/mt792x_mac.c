@@ -267,6 +267,8 @@ EXPORT_SYMBOL_GPL(mt792x_update_channel);
 
 void mt792x_reset(struct mt76_dev *mdev)
 {
+	// Reset does not work properly under Windows, so it is commented-out
+	/*
 	struct mt792x_dev *dev = container_of(mdev, struct mt792x_dev, mt76);
 	struct mt76_connac_pm *pm = &dev->pm;
 
@@ -280,6 +282,7 @@ void mt792x_reset(struct mt76_dev *mdev)
 		return;
 
 	queue_work(dev->mt76.wq, &dev->reset_work);
+	*/
 }
 EXPORT_SYMBOL_GPL(mt792x_reset);
 

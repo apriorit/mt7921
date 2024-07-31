@@ -159,6 +159,13 @@ static int mt7921_init_hardware(struct mt792x_dev *dev)
 	return 0;
 }
 
+static void is_need_to_reset_callback(void* context)
+{
+	struct mt792x_dev* dev = context;
+
+	return mt792x_dma_need_reinit(dev);
+}
+
 static void mt7921_init_work(struct work_struct *work)
 {
 	struct mt792x_dev *dev = container_of(work, struct mt792x_dev,
@@ -187,6 +194,8 @@ static void mt7921_init_work(struct work_struct *work)
 	dev->hw_init_done = true;
 
 	mt76_connac_mcu_set_deep_sleep(&dev->mt76, dev->pm.ds_enable);
+
+	register_reset_check_callback(is_need_to_reset_callback, dev);
 }
 
 int mt7921_register_device(struct mt792x_dev *dev)
