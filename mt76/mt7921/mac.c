@@ -578,10 +578,10 @@ bool mt7921_rx_check(struct mt76_dev *mdev, void *data, int len)
 	type = le32_get_bits(rxd[0], MT_RXD0_PKT_TYPE);
 
 	switch (type) {
-	case PKT_TYPE_TXRX_NOTIFY:
-		/* PKT_TYPE_TXRX_NOTIFY can be received only by mmio devices */
-		mt7921_mac_tx_free(dev, data, len); /* mmio */
-		return false;
+	//case PKT_TYPE_TXRX_NOTIFY:
+	//	/* PKT_TYPE_TXRX_NOTIFY can be received only by mmio devices */
+	//	mt7921_mac_tx_free(dev, data, len); /* mmio */
+	//	return false;
 	case PKT_TYPE_TXS:
 		for (rxd += 2; rxd + 8 <= end; rxd += 8)
 			mt7921_mac_add_txs(dev, rxd);
@@ -608,11 +608,11 @@ void mt7921_queue_rx_skb(struct mt76_dev *mdev, enum mt76_rxq_id q,
 		type = PKT_TYPE_NORMAL_MCU;
 
 	switch (type) {
-	case PKT_TYPE_TXRX_NOTIFY:
-		/* PKT_TYPE_TXRX_NOTIFY can be received only by mmio devices */
-		mt7921_mac_tx_free(dev, skb->data, skb->len);
-		napi_consume_skb(skb, 1);
-		break;
+	//case PKT_TYPE_TXRX_NOTIFY:
+	//	/* PKT_TYPE_TXRX_NOTIFY can be received only by mmio devices */
+	//	mt7921_mac_tx_free(dev, skb->data, skb->len);
+	//	napi_consume_skb(skb, 1);
+	//	break;
 	case PKT_TYPE_RX_EVENT:
 		mt7921_mcu_rx_event(dev, skb);
 		break;
